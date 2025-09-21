@@ -3,6 +3,8 @@ local tbl_deep_extend = vim.tbl_deep_extend
 
 -- Local modules
 local config = require("wind.config")
+local clipboard = require("wind.clipboard")
+local clipboard_keymaps = require("wind.keymaps.clipboard")
 local windows = require("wind.windows")
 local windows_keymaps = require("wind.keymaps.windows")
 
@@ -14,10 +16,15 @@ function wind.setup(opts)
 	config.setup(opts)
 	local _config = config.get()
 
-	-- Pass the config to the windows module
+	-- Pass the config to modules
+	clipboard.setup(config.get_section("clipboard"))
 	windows.setup(config.get_section("windows"))
 
 	-- Setup keymaps
+	if _config.enable_clipboard_keymaps ~= false then
+		clipboard_keymaps.setup(_config)
+	end
+
 	if _config.enable_window_keymaps ~= false then
 		windows_keymaps.setup(_config)
 	end

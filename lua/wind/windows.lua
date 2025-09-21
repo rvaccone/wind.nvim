@@ -5,7 +5,7 @@ local log = vim.log
 local notify = vim.notify
 local tbl_contains = vim.tbl_contains
 
--- Local
+-- Local modules
 local config = require("wind.config")
 
 local M = {}

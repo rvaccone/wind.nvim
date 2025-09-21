@@ -36,9 +36,9 @@ M.defaults = {
 
 		-- Clipboard
 		yank_window = "<leader>y", -- Prefix with window index
-		yank_filename = "<leader>yn",
 		yank_current_window = "<leader>ya",
 		yank_windows = "<leader>yA",
+		yank_filename = "<leader>yn",
 	},
 }
 
