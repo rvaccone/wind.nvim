@@ -26,7 +26,7 @@ function M.relativize_path(abs_path, cwd)
 
 	-- Determine the prefix for the current directory
 	local base = cwd or fn.getcwd()
-	local sep = path_sep()
+	local sep = M.path_sep()
 	local prefix = base .. sep
 
 	-- Strip the prefix from the absolute path
