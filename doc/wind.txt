@@ -397,7 +397,7 @@ the GitHub repository.
         +------------------------------------+  +----------------+
         | Window 1                           |  | Window 3       |
         | file 1                             |  | file 2         |
-        | (excluded)                         |  | (indexed)      |
+        | (indexed)                          |  | (indexed)      |
         +------------------------------------+  +----------------+
         indexed: 1                              indexed: 2
 
@@ -419,7 +419,7 @@ the GitHub repository.
         +------------------------------------+  +----------------+
         | Window 1                           |  | Window 3       |
         | file 1                             |  | file 2         |
-        | (excluded)                         |  | (indexed)      |
+        | (indexed)                          |  | (indexed)      |
         +------------------------------------+  +----------------+
         indexed: 1                              indexed: 2
 
