@@ -45,6 +45,7 @@ local M = {}
 ---@field clipboard WindClipboardConfig Clipboard management configuration
 
 -- Default configuration
+---@type WindConfig
 M.defaults = {
 	windows = {
 		excluded_filetypes = { "help", "neo-tree" },

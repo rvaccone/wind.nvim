@@ -6,6 +6,9 @@ local clipboard = require("wind.clipboard")
 
 local M = {}
 
+--- Setup function to create keymaps
+---@param clipboard_config WindClipboardConfig
+---@return nil
 function M.setup(clipboard_config)
 	-- Check if keymaps are enabled
 	local keymaps = clipboard_config.keymaps

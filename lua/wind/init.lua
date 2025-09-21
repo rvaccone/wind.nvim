@@ -11,6 +11,8 @@ local windows_keymaps = require("wind.keymaps.windows")
 local wind = {}
 
 --- Setup function that lazy.nvim will call
+---@param opts WindConfig
+---@return nil
 function wind.setup(opts)
 	-- Setup the config module
 	config.setup(opts)
@@ -25,11 +27,11 @@ function wind.setup(opts)
 	windows.setup(windows_config)
 
 	-- Setup keymaps
-	if _config.enable_clipboard_keymaps ~= false then
+	if clipboard_config.keymaps ~= false then
 		clipboard_keymaps.setup(clipboard_config)
 	end
 
-	if _config.enable_window_keymaps ~= false then
+	if windows_config.keymaps ~= false then
 		windows_keymaps.setup(windows_config)
 	end
 end

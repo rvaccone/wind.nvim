@@ -6,6 +6,9 @@ local windows = require("wind.windows")
 
 local M = {}
 
+--- Setup function to create keymaps
+---@param windows_config WindWindowsConfig
+---@return nil
 function M.setup(windows_config)
 	-- Check if keymaps are enabled
 	local keymaps = windows_config.keymaps

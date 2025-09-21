@@ -17,6 +17,7 @@ end
 --- Get a relative file path from a directory
 ---@param abs_path string
 ---@param cwd string|nil
+---@param empty_filepath string
 ---@return string
 function M.relativize_path(abs_path, cwd, empty_filepath)
 	-- Handle empty or no absolute path
@@ -37,6 +38,7 @@ end
 --- Compose buffer content with its relative file path
 ---@param cwd string|nil
 ---@param buf integer|nil
+---@param empty_filepath string
 ---@return string
 function M.compose_buffer_content_with_path(cwd, buf, empty_filepath)
 	buf = buf or 0
