@@ -11,6 +11,8 @@
         <a href="#configuration">Configuration</a>
         ·
         <a href="#default-keymaps">Default Keymaps</a>
+        ·
+        <a href="#contributing">Contributing</a>
     </p>
 </div>
 
@@ -129,3 +131,29 @@ Clipboard keymaps (default):
 | `<leader>yn`                | Yank current filename            |
 
 All keymaps work in normal and visual modes.
+
+## Contributing
+
+Let's make Wind.nvim better together! Here are some ways you can help:
+
+**Bug Reports & Feature Requests:**
+
+- Open an issue on GitHub with clear reproduction steps
+- Check existing issues first to avoid duplicates
+
+**Pull Requests:**
+
+- Fork the repository and create a feature branch
+- Update documentation as needed
+
+**Ideas for Improvements:**
+
+- Better window creation
+- Timeout to show window indexes
+- Add new window movement commands
+- Animations for window operations
+- Clipboard option to allow for absolute paths
+- Public API for window and clipboard operations
+- See `:h wind` for more information for all of the above
+
+Before contributing, please ensure your changes align with the plugin's core philosophy and design.
