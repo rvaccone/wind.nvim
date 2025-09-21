@@ -28,7 +28,7 @@ end
 --- Yank the entire buffer and append the file path
 function M.yank_with_path()
 	local clipboard_config = M.get_config()
-	local combined_content = files.compose_buffer_content_with_path(nil, 0)
+	local combined_content = files.compose_buffer_content_with_path(nil, 0, clipboard_config.empty_filename)
 	fn.setreg("+", combined_content)
 
 	-- Notify the user
@@ -49,7 +49,7 @@ local function compose_block_for_window(win, cwd)
 	local buf = api.nvim_win_get_buf(target_win)
 	local lines_tbl = api.nvim_buf_get_lines(buf, 0, -1, false)
 	local abs_path = api.nvim_buf_get_name(buf)
-	local relpath = files.relativize_path(abs_path, cwd)
+	local relpath = files.relativize_path(abs_path, cwd, clipboard_config.empty_filename)
 	local filetype = api.nvim_get_option_value("filetype", { buf = buf }) or ""
 
 	-- Compose the block

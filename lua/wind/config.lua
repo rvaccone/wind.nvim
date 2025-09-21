@@ -30,6 +30,8 @@ M.defaults = {
 			include_line_count = true,
 		},
 
+		empty_filename = "[No Name]",
+
 		notify = true,
 	},
 
