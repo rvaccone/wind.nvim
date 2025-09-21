@@ -367,4 +367,4 @@ SEE ALSO						*wind-see-also*
 -  |harpoon|			Quick file and window navigation
 -  |which-key.nvim|		Keymap helper and display
 
-vim:tw=78:ts=8:noet:ft=help:norl:fen:fdl=0:fmr=[[:help wind-]:wind-]:tags=./doc/tags,./doc/tags-?:
+vim:tw=78:ts=8:noet:ft=help:norl:fen:fdl=0:tags=./doc/tags,./doc/tags-?:
