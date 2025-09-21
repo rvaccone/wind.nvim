@@ -113,7 +113,7 @@ Use `:h wind` for more information about each configuration option. However, her
 
 By default, the plugin creates indexed keymaps (1-9) for window operations:
 
-| Window keymaps (default)    | Description                           |
+| Window keymaps              | Description                           |
 | --------------------------- | ------------------------------------- |
 | `<leader>1` - `<leader>9`   | Focus or create horizontal window 1-9 |
 | `<leader>v1` - `<leader>v9` | Focus or create vertical window 1-9   |
@@ -121,14 +121,14 @@ By default, the plugin creates indexed keymaps (1-9) for window operations:
 | `<leader>q1` - `<leader>q9` | Close window 1-9 without saving       |
 | `<leader>z1` - `<leader>z9` | Close window 1-9 with saving          |
 
-Clipboard keymaps (default):
+Clipboard keymaps:
 
-| Clipboard keymaps (default) | Description                      |
-| --------------------------- | -------------------------------- |
-| `<leader>ya`                | Yank current window with path    |
-| `<leader>y#`                | Yank current window in AI format |
-| `<leader>y*`                | Yank all windows in AI format    |
-| `<leader>yn`                | Yank current filename            |
+| Clipboard keymaps | Description                      |
+| ----------------- | -------------------------------- |
+| `<leader>ya`      | Yank current window with path    |
+| `<leader>y#`      | Yank current window in AI format |
+| `<leader>y*`      | Yank all windows in AI format    |
+| `<leader>yn`      | Yank current filename            |
 
 All keymaps work in normal and visual modes.
 
