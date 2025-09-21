@@ -3,6 +3,47 @@ local tbl_deep_extend = vim.tbl_deep_extend
 
 local M = {}
 
+---@class WindWindowsConfig
+---@field excluded_filetypes string[] Filetypes to exclude from window indexing
+---@field index_help_windows boolean Whether to index help windows
+---@field max_windows integer Maximum number of windows to index
+---@field zero_based_indexing boolean Use 0-based indexing instead of 1-based
+---@field notify boolean Show notifications for window operations
+---@field keymaps? WindWindowsKeymaps|boolean Window keymaps configuration
+
+---@class WindWindowsKeymaps
+---@field focus_or_create_horizontal_window? string|boolean Keymap prefix for horizontal windows
+---@field focus_or_create_vertical_window? string|boolean Keymap prefix for vertical windows
+---@field swap_window? string|boolean Keymap prefix for swapping windows
+---@field close_window? string|boolean Keymap prefix for closing windows
+---@field close_window_and_swap? string|boolean Keymap prefix for close-and-swap
+
+---@class WindClipboardAIConfig
+---@field file_begin_text string Text marker for file start in AI format
+---@field content_begin_text string Text marker for content start in AI format
+---@field file_end_text string Text marker for file end in AI format
+---@field separator string Separator between files in AI format
+---@field include_path boolean Include file path in AI format
+---@field include_filetype boolean Include file type in AI format
+---@field include_line_count boolean Include line count in AI format
+
+---@class WindClipboardConfig
+---@field empty_filepath string Text to use when file has no path
+---@field notify boolean Show notifications for clipboard operations
+---@field ai WindClipboardAIConfig AI-friendly clipboard formatting options
+---@field keymaps? WindClipboardKeymaps|boolean Clipboard keymaps configuration
+
+---@class WindClipboardKeymaps
+---@field yank_window? string|boolean Keymap prefix for yanking specific windows
+---@field yank_current_window? string|boolean Keymap for yanking current window
+---@field yank_current_window_ai? string|boolean Keymap for AI-formatted current window
+---@field yank_windows_ai? string|boolean Keymap for AI-formatted all windows
+---@field yank_filename? string|boolean Keymap for yanking filename
+
+---@class WindConfig
+---@field windows WindWindowsConfig Windows management configuration
+---@field clipboard WindClipboardConfig Clipboard management configuration
+
 -- Default configuration
 M.defaults = {
 	windows = {
