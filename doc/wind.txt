@@ -119,7 +119,7 @@ Window indexing works as follows:
     | Neo-tree       |  | file 1         |  | file 2         |  | help           |
     | (excluded)     |  | (indexed)      |  | (indexed)      |  | (excluded)     |
     +----------------+  +----------------+  +----------------+  +----------------+
-	                    index: 1            index: 2
+                        index: 1            index: 2
 <
 
 The first window is indexed at index 1, then windows are indexed left-to-right
@@ -131,14 +131,14 @@ vertical windows:
     | Neo-tree       |  | file 1         |  | file 2                             |
     | (excluded)     |  | (indexed)      |  | (indexed)                          |
     +----------------+  +----------------+  +------------------------------------+
-	                	index: 1            index: 2
+                        index: 1            index: 2
 
-											+----------------+  +----------------+
-											| Window 4       |  | Window 5       |
-											| file 3         |  | file 4         |
-											| (indexed)      |  | (indexed)      |
-											+----------------+  +----------------+
-											index: 3            index: 4
+                                            +----------------+  +----------------+
+                                            | Window 4       |  | Window 5       |
+                                            | file 3         |  | file 4         |
+                                            | (indexed)      |  | (indexed)      |
+                                            +----------------+  +----------------+
+                                            index: 3            index: 4
 <
 
 For simplicity, the plugin will always create new windows at the last indexed window. As
@@ -152,14 +152,14 @@ left-to-right and then top-to-bottom. Take this example:
     | Neo-tree       |  | file 2                             |  | file 3                             |
     | (excluded)     |  | (indexed)                          |  | (indexed)                          |
     +----------------+  +------------------------------------+  +------------------------------------+
-	                	index: 1                                index: 2
+                        index: 1                                index: 2
 
-						+----------------+  +----------------+  +----------------+  +----------------+
-						| Window 4       |  | Window 5       |  | Window 6       |  | Window 7       |
-						| file 4         |  | file 5         |  | file 6         |  | file 7         |
-						| (indexed)      |  | (indexed)      |  | (indexed)      |  | (indexed)      |
-						+----------------+  +----------------+  +----------------+  +----------------+
-						index: 3            index: 4            index: 5            index: 6
+                        +----------------+  +----------------+  +----------------+  +----------------+
+                        | Window 4       |  | Window 5       |  | Window 6       |  | Window 7       |
+                        | file 4         |  | file 5         |  | file 6         |  | file 7         |
+                        | (indexed)      |  | (indexed)      |  | (indexed)      |  | (indexed)      |
+                        +----------------+  +----------------+  +----------------+  +----------------+
+                        index: 3            index: 4            index: 5            index: 6
 <
 
 Wind.nvim can not create this layout currently because it does not support splits
@@ -172,20 +172,20 @@ WINDOWS CONFIGURATION *wind-windows-configuration*
 Now that you know how the plugin indexes your windows, let's talk about
 configuration options for the plugin.
 
-windows.excluded_filetypes *wind-config-windows-excluded_filetypes*
+`windows.excluded_filetypes` *wind-config-windows-excluded_filetypes*
 	type: string[]
 	default: {"help", "neo-tree"}
 
 	Filetypes that should be excluded from window indexing. Windows with these
 	filetypes will not be included in the indexing process.
 
-windows.index_help_windows *wind-config-windows-index_help_windows*
+`windows.index_help_windows` *wind-config-windows-index_help_windows*
 	type: boolean
 	default: false
 
 	Whether to index help windows.
 
-windows.max_windows *wind-config-windows-max_windows*
+`windows.max_windows` *wind-config-windows-max_windows*
 	type: integer
 	default: 9
 
@@ -195,54 +195,54 @@ windows.max_windows *wind-config-windows-max_windows*
 	press `<leader>1` to determine if you want to focus window 1 or are about to
 	create or focus window 10.
 
-windows.zero_based_indexing *wind-config-windows-zero_based_indexing*
+`windows.zero_based_indexing` *wind-config-windows-zero_based_indexing*
 	type: boolean
 	default: false
 
 	Whether to use 0-based indexing instead of 1-based indexing. It's recommended
 	to use the 0 index for your filetree or similar.
 
-windows.notify *wind-config-windows-notify*
+`windows.notify` *wind-config-windows-notify*
 	type: boolean
 	default: true
 
 	Whether to show notifications for window operations.
 
-windows.keymaps *wind-config-windows-keymaps*
+`windows.keymaps` *wind-config-windows-keymaps*
 	type: WindWindowsKeymaps|boolean
 	default: see below
 
 	Keymap configuration for window management. You can set it to `false` to disable
 	all window keymaps.
 
-	focus_or_create_horizontal_window *wind-config-windows-keymaps-focus_or_create_horizontal_window*
+	`focus_or_create_horizontal_window` *wind-config-windows-keymaps-focus_or_create_horizontal_window*
 		type: string|boolean
 		default: "<leader>"
 
 		Keymap prefix for focusing/creating horizontal windows (windows that are split vertically).
 		Set to `false` to disable this keymap.
 
-	focus_or_create_vertical_window *wind-config-windows-keymaps-focus_or_create_vertical_window*
+	`focus_or_create_vertical_window` *wind-config-windows-keymaps-focus_or_create_vertical_window*
 		type: string|boolean
 		default: "<leader>v"
 
 		Keymap prefix for focusing/creating vertical windows (windows that are split horizontally).
 		Set to `false` to disable this keymap.
 
-	swap_window *wind-config-windows-keymaps-swap_window*
+	`swap_window` *wind-config-windows-keymaps-swap_window*
 		type: string|boolean
 		default: "<leader>x"
 
 		Keymap prefix for swapping current window with target window.
 		Set to `false` to disable this keymap.
 
-	close_window *wind-config-windows-keymaps-close_window*
+	`close_window` *wind-config-windows-keymaps-close_window*
 		type: string|boolean
 		default: "<leader>q"
 
 		Keymap prefix for closing target window. Set to `false` to disable this keymap.
 
-	close_window_and_swap *wind-config-windows-keymaps-close_window_and_swap*
+	`close_window_and_swap` *wind-config-windows-keymaps-close_window_and_swap*
 		type: string|boolean
 		default: "<leader>z"
 
@@ -272,94 +272,94 @@ CLIPBOARD CONFIGURATION *wind-clipboard-configuration*
 
 Clipboard configuration options are straightforward.
 
-clipboard.empty_filepath *wind-config-clipboard-empty_filepath*
+`clipboard.empty_filepath` *wind-config-clipboard-empty_filepath*
 	type: string
 	default: "[No Name]"
 
 	Filepath to use when the file has no path. For example, blank or unnamed files will
 	have this filepath.
 
-clipboard.notify *wind-config-clipboard-notify*
+`clipboard.notify` *wind-config-clipboard-notify*
 	type: boolean
 	default: true
 
 	Whether to show notifications for clipboard operations.
 
-clipboard.ai *wind-config-clipboard-ai*
+`clipboard.ai` *wind-config-clipboard-ai*
 	type: WindClipboardAIConfig
 	default: see below
 
 	AI-friendly formatting options for clipboard operations.
 
-	file_begin_text *wind-config-clipboard-ai-file_begin_text*
+	`file_begin_text` *wind-config-clipboard-ai-file_begin_text*
 		type: string
 		default: "=== FILE BEGIN ==="
 
 		Text to use at the beginning of the clipboard file.
 
-	content_begin_text *wind-config-clipboard-ai-content_begin_text*
+	`content_begin_text` *wind-config-clipboard-ai-content_begin_text*
 		type: string
 		default: "--- CONTENT ---"
 
 		Text to use at the beginning of the clipboard content. Note that this text
 		will be followed by a newline.
 
-	file_end_text *wind-config-clipboard-ai-file_end_text*
+	`file_end_text` *wind-config-clipboard-ai-file_end_text*
 		type: string
 		default: "=== FILE END ==="
 
 		Text to use at the end of the clipboard file.
 
-	separator *wind-config-clipboard-ai-separator*
+	`separator` *wind-config-clipboard-ai-separator*
 		type: string
 		default: "\n"
 
 		Separator to use between multiple files.
 
-	include_filetype *wind-config-clipboard-ai-include_filetype*
+	`include_filetype` *wind-config-clipboard-ai-include_filetype*
 		type: boolean
 		default: true
 
 		Whether to include the filetype in the clipboard file.
 
-	include_line_count *wind-config-clipboard-ai-include_line_count*
+	`include_line_count` *wind-config-clipboard-ai-include_line_count*
 		type: boolean
 		default: true
 
 		Whether to include the number of lines in the clipboard file.
 
-	include_path *wind-config-clipboard-ai-include_path*
+	`include_path` *wind-config-clipboard-ai-include_path*
 		type: boolean
 		default: true
 
 		Whether to include the relative file path in the clipboard file.
 
-clipboard.keymaps *wind-config-clipboard-keymaps*
+`clipboard.keymaps` *wind-config-clipboard-keymaps*
 	type: WindClipboardKeymaps|boolean
 	default: see below
 
 	Keymap configuration for clipboard operations. You can set it to `false` to disable
 	all clipboard keymaps.
 
-	yank_current_window *wind-config-clipboard-keymaps-yank_current_window*
+	`yank_current_window` *wind-config-clipboard-keymaps-yank_current_window*
 		type: string|boolean
 		default: "<leader>ya"
 
 		Keymap for yanking the current window. Set to `false` to disable this keymap.
 
-	yank_current_window_ai *wind-config-clipboard-keymaps-yank_current_window_ai*
+	`yank_current_window_ai` *wind-config-clipboard-keymaps-yank_current_window_ai*
 		type: string|boolean
 		default: "<leader>y#"
 
 		Keymap for AI-formatted current window. Set to `false` to disable this keymap.
 
-	yank_windows_ai *wind-config-clipboard-keymaps-yank_windows_ai*
+	`yank_windows_ai` *wind-config-clipboard-keymaps-yank_windows_ai*
 		type: string|boolean
 		default: "<leader>y*"
 
 		Keymap for AI-formatted all windows. Set to `false` to disable this keymap.
 
-	yank_filename *wind-config-clipboard-keymaps-yank_filename*
+	`yank_filename` *wind-config-clipboard-keymaps-yank_filename*
 		type: string|boolean
 		default: "<leader>yn"
 
@@ -397,19 +397,19 @@ the GitHub repository.
 	The main issue is with more complex layouts. For example, let's assume you have
 	four windows arranged like this:
 	>
-		+------------------------------------+  +----------------+
-		| Window 1                           |  | Window 3       |
-		| file 1                             |  | file 2         |
-		| (excluded)                         |  | (indexed)      |
-		+------------------------------------+  +----------------+
-		indexed: 1                              indexed: 2
+        +------------------------------------+  +----------------+
+        | Window 1                           |  | Window 3       |
+        | file 1                             |  | file 2         |
+        | (excluded)                         |  | (indexed)      |
+        +------------------------------------+  +----------------+
+        indexed: 1                              indexed: 2
 
-		+----------------+  +----------------+
-		| Window 3       |  | Window 4       |
-		| file 3         |  | file 4         |
-		| (indexed)      |  | (indexed)      |
-		+----------------+  +----------------+
-		indexed: 3          indexed: 4
+        +----------------+  +----------------+
+        | Window 3       |  | Window 4       |
+        | file 3         |  | file 4         |
+        | (indexed)      |  | (indexed)      |
+        +----------------+  +----------------+
+        indexed: 3          indexed: 4
 	<
 
 	In this layout, let's assume that a user wants to create a new vertical window below
@@ -418,42 +418,42 @@ the GitHub repository.
 	3/4 and have it horizontal with them?
 
 	>
-		Option 1:
-		+------------------------------------+  +----------------+
-		| Window 1                           |  | Window 3       |
-		| file 1                             |  | file 2         |
-		| (excluded)                         |  | (indexed)      |
-		+------------------------------------+  +----------------+
-		indexed: 1                              indexed: 2
+        Option 1:
+        +------------------------------------+  +----------------+
+        | Window 1                           |  | Window 3       |
+        | file 1                             |  | file 2         |
+        | (excluded)                         |  | (indexed)      |
+        +------------------------------------+  +----------------+
+        indexed: 1                              indexed: 2
 
-		+------------------------------------+
-		| Window 5                           |
-		| file 5                             |
-		| (indexed)                          |
-		+------------------------------------+
-		indexed: 3
+        +------------------------------------+
+        | Window 5                           |
+        | file 5                             |
+        | (indexed)                          |
+        +------------------------------------+
+        indexed: 3
 
-		+----------------+  +----------------+
-		| Window 3       |  | Window 4       |
-		| file 3         |  | file 4         |
-		| (indexed)      |  | (indexed)      |
-		+----------------+  +----------------+
-		indexed: 4          indexed: 4
+        +----------------+  +----------------+
+        | Window 3       |  | Window 4       |
+        | file 3         |  | file 4         |
+        | (indexed)      |  | (indexed)      |
+        +----------------+  +----------------+
+        indexed: 4          indexed: 4
 
-		Option 2:
-		+--------------------------------------------------------+  +----------------+
-		| Window 1                                               |  | Window 3       |
-		| file 1                                                 |  | file 2         |
-		| (indexed)                                              |  | (indexed)      |
-		+--------------------------------------------------------+  +----------------+
-		indexed: 1                                                  indexed: 2
+        Option 2:
+        +--------------------------------------------------------+  +----------------+
+        | Window 1                                               |  | Window 3       |
+        | file 1                                                 |  | file 2         |
+        | (indexed)                                              |  | (indexed)      |
+        +--------------------------------------------------------+  +----------------+
+        indexed: 1                                                  indexed: 2
 
-		+----------------+  +----------------+  +----------------+
-		| Window 3       |  | Window 4       |  | Window 5       |
-		| file 3         |  | file 4         |  | file 5         |
-		| (indexed)      |  | (indexed)      |  | (indexed)      |
-		+----------------+  +----------------+  +----------------+
-		indexed: 3          indexed: 4          indexed: 5
+        +----------------+  +----------------+  +----------------+
+        | Window 3       |  | Window 4       |  | Window 5       |
+        | file 3         |  | file 4         |  | file 5         |
+        | (indexed)      |  | (indexed)      |  | (indexed)      |
+        +----------------+  +----------------+  +----------------+
+        indexed: 3          indexed: 4          indexed: 5
 	<
 
 
