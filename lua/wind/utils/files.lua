@@ -45,3 +45,5 @@ function M.compose_buffer_content_with_path(cwd, buf)
 	local display_path = relativize_path(abs_path, cwd)
 	return string.format("%s:\n%s", display_path, table.concat(buffer_content, "\n"))
 end
+
+return M
