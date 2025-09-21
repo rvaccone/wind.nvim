@@ -16,17 +16,21 @@ function wind.setup(opts)
 	config.setup(opts)
 	local _config = config.get()
 
+	-- Get config sections
+	local clipboard_config = config.get_section("clipboard")
+	local windows_config = config.get_section("windows")
+
 	-- Pass the config to modules
-	clipboard.setup(config.get_section("clipboard"))
-	windows.setup(config.get_section("windows"))
+	clipboard.setup(clipboard_config)
+	windows.setup(windows_config)
 
 	-- Setup keymaps
 	if _config.enable_clipboard_keymaps ~= false then
-		clipboard_keymaps.setup(_config)
+		clipboard_keymaps.setup(clipboard_config)
 	end
 
 	if _config.enable_window_keymaps ~= false then
-		windows_keymaps.setup(_config)
+		windows_keymaps.setup(windows_config)
 	end
 end
 

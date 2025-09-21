@@ -6,12 +6,10 @@ local windows = require("wind.windows")
 
 local M = {}
 
-function M.setup(config)
-	local keymaps_config = config["keymaps"] or {}
-	local windows_config = config["windows"] or {}
-
+function M.setup(windows_config)
 	-- Check if keymaps are enabled
-	if windows_config.enable_window_keymaps == false then
+	local keymaps = windows_config.keymaps
+	if keymaps == false then
 		return
 	end
 
@@ -23,36 +21,36 @@ function M.setup(config)
 	-- Create the keymaps
 	for i = start_index, max_index do
 		-- Focus or create horizontal window
-		if keymaps_config.focus_or_create_horizontal_window then
-			keymap.set({ "n", "v" }, keymaps_config.focus_or_create_horizontal_window .. i, function()
+		if keymaps.focus_or_create_horizontal_window then
+			keymap.set({ "n", "v" }, keymaps.focus_or_create_horizontal_window .. i, function()
 				windows.focus_or_create_window(i, "vsplit")
 			end, { desc = "Focus or create horizontal window " .. i, noremap = true, silent = true })
 		end
 
 		-- Focus or create vertical window
-		if keymaps_config.focus_or_create_vertical_window then
-			keymap.set({ "n", "v" }, keymaps_config.focus_or_create_vertical_window .. i, function()
+		if keymaps.focus_or_create_vertical_window then
+			keymap.set({ "n", "v" }, keymaps.focus_or_create_vertical_window .. i, function()
 				windows.focus_or_create_window(i, "split")
 			end, { desc = "Focus or create vertical window " .. i, noremap = true, silent = true })
 		end
 
 		-- Swap window
-		if keymaps_config.swap_window then
-			keymap.set({ "n", "v" }, keymaps_config.swap_window .. i, function()
+		if keymaps.swap_window then
+			keymap.set({ "n", "v" }, keymaps.swap_window .. i, function()
 				windows.swap_window(i)
 			end, { desc = "Swap current window with window " .. i, noremap = true, silent = true })
 		end
 
 		-- Close window
-		if keymaps_config.close_window then
-			keymap.set({ "n", "v" }, keymaps_config.close_window .. i, function()
+		if keymaps.close_window then
+			keymap.set({ "n", "v" }, keymaps.close_window .. i, function()
 				windows.operate_on_window(i, "q!")
 			end, { desc = "Close window " .. i, noremap = true, silent = true })
 		end
 
 		-- Close window and swap
-		if keymaps_config.close_window_and_swap then
-			keymap.set({ "n", "v" }, keymaps_config.close_window_and_swap .. i, function()
+		if keymaps.close_window_and_swap then
+			keymap.set({ "n", "v" }, keymaps.close_window_and_swap .. i, function()
 				windows.operate_on_window(i, "wq!")
 			end, { desc = "Close window " .. i .. " and swap", noremap = true, silent = true })
 		end

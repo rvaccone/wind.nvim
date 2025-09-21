@@ -18,10 +18,10 @@ end
 ---@param abs_path string
 ---@param cwd string|nil
 ---@return string
-function M.relativize_path(abs_path, cwd, empty_filename)
+function M.relativize_path(abs_path, cwd, empty_filepath)
 	-- Handle empty or no absolute path
 	if not abs_path or abs_path == "" then
-		return empty_filename
+		return empty_filepath
 	end
 
 	-- Determine the prefix for the current directory
@@ -38,11 +38,11 @@ end
 ---@param cwd string|nil
 ---@param buf integer|nil
 ---@return string
-function M.compose_buffer_content_with_path(cwd, buf, empty_filename)
+function M.compose_buffer_content_with_path(cwd, buf, empty_filepath)
 	buf = buf or 0
 	local buffer_content = api.nvim_buf_get_lines(buf, 0, -1, false)
 	local abs_path = api.nvim_buf_get_name(buf)
-	local display_path = M.relativize_path(abs_path, cwd, empty_filename)
+	local display_path = M.relativize_path(abs_path, cwd, empty_filepath)
 	return string.format("%s:\n%s", display_path, table.concat(buffer_content, "\n"))
 end
 

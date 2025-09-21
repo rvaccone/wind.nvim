@@ -14,6 +14,14 @@ M.defaults = {
 		zero_based_indexing = false,
 
 		notify = true,
+
+		keymaps = {
+			focus_or_create_horizontal_window = "<leader>", -- Prefix with window index
+			focus_or_create_vertical_window = "<leader>v", -- Prefix with window index
+			swap_window = "<leader>x", -- Prefix with window index
+			close_window = "<leader>q", -- Prefix with window index
+			close_window_and_swap = "<leader>z", -- Prefix with window index
+		},
 	},
 
 	-- Clipboard management
@@ -30,28 +38,17 @@ M.defaults = {
 			include_line_count = true,
 		},
 
-		empty_filename = "[No Name]",
+		empty_filepath = "[No Name]",
 
 		notify = true,
-	},
 
-	-- Keymaps
-	enable_window_keymaps = true,
-	enable_clipboard_keymaps = true,
-	keymaps = {
-		-- Windows
-		focus_or_create_horizontal_window = "<leader>", -- Prefix with window index
-		focus_or_create_vertical_window = "<leader>v", -- Prefix with window index
-		swap_window = "<leader>s", -- Prefix with window index
-		close_window = "<leader>q", -- Prefix with window index
-		close_window_and_swap = "<leader>w", -- Prefix with window index
-
-		-- Clipboard
-		yank_window = "<leader>y", -- Prefix with window index
-		yank_current_window = "<leader>ya",
-		yank_current_window_ai = "<leader>y#",
-		yank_windows_ai = "<leader>y*",
-		yank_filename = "<leader>yn",
+		keymaps = {
+			yank_window = "<leader>y", -- Prefix with window index
+			yank_current_window = "<leader>ya",
+			yank_current_window_ai = "<leader>y#",
+			yank_windows_ai = "<leader>y*",
+			yank_filename = "<leader>yn",
+		},
 	},
 }
 
