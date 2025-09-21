@@ -1,0 +1,27 @@
+-- Localized vim variables
+local tbl_deep_extend = vim.tbl_deep_extend
+
+-- Local modules
+local config = require("wind.config")
+local windows = require("wind.windows")
+local windows_keymaps = require("wind.keymaps.windows")
+
+local wind = {}
+
+--- Setup function that lazy.nvim will call
+function wind.setup(opts)
+	-- Setup the config module
+	config.setup(opts)
+	local _config = config.get()
+
+	-- Pass the config to the windows module
+	windows.setup(config.get_section("windows"))
+
+	-- Setup keymaps
+	if _config.enable_window_keymaps ~= false then
+		windows_keymaps.setup(_config)
+	end
+end
+
+-- Export the module
+return wind
