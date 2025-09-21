@@ -62,7 +62,22 @@ local function compose_block_for_window(win, cwd)
 	}, "\n")
 end
 
---- Yank buffer contents and file paths for all open windows
+--- Yank current window in AI-friendly format
+function M.yank_current_window_ai()
+	local clipboard_config = M.get_config()
+	local cwd = fn.getcwd()
+	local ai_block = compose_block_for_window(nil, cwd)
+
+	fn.setreg("+", ai_block)
+
+	if clipboard_config.notify ~= false then
+		local buf = api.nvim_win_get_buf(api.nvim_get_current_win())
+		local line_count = api.nvim_buf_line_count(buf)
+		notify(string.format("Copied %d lines to clipboard", line_count), log.levels.INFO)
+	end
+end
+
+--- Yank buffer contents and file paths for all open windows in an AI-friendly format
 function M.yank_windows_ai()
 	local clipboard_config = M.get_config()
 	local editor_windows = windows.list_content_windows()
