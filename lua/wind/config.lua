@@ -18,7 +18,17 @@ M.defaults = {
 
 	-- Clipboard management
 	clipboard = {
-		separator = "\n\n---\n\n",
+
+		ai = {
+			file_begin_text = "=== FILE BEGIN ===",
+			content_begin_text = "--- CONTENT ---",
+			file_end_text = "=== FILE END ===",
+			separator = "\n",
+
+			include_path = true,
+			include_filetype = true,
+			include_line_count = true,
+		},
 
 		notify = true,
 	},

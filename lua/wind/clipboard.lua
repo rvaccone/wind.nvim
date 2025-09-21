@@ -42,6 +42,8 @@ end
 ---@param cwd string|nil
 ---@return string
 local function compose_block_for_window(win, cwd)
+	local clipboard_config = M.get_config()
+
 	-- Get the buffer content and the path
 	local target_win = win or api.nvim_get_current_win()
 	local buf = api.nvim_win_get_buf(target_win)
@@ -52,14 +54,14 @@ local function compose_block_for_window(win, cwd)
 
 	-- Compose the block
 	return table.concat({
-		"=== FILE BEGIN ===",
-		"Path: " .. relpath,
-		"Filetype: " .. filetype,
-		"Lines: " .. tostring(#lines_tbl),
-		"--- CONTENT ---",
+		clipboard_config.ai.file_begin_text,
+		clipboard_config.ai.include_path and ("Path: " .. relpath) or "",
+		clipboard_config.ai.include_filetype and ("Filetype: " .. filetype) or "",
+		clipboard_config.ai.include_line_count and ("Lines: " .. tostring(#lines_tbl)) or "",
+		clipboard_config.ai.content_begin_text,
 		table.concat(lines_tbl, "\n"),
-		"=== FILE END ===",
-	}, "\n")
+		clipboard_config.ai.file_end_text,
+	}, clipboard_config.ai.separator)
 end
 
 --- Yank current window in AI-friendly format
