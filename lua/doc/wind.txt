@@ -1,0 +1,370 @@
+*wind.nvim*		Wind - Window and Clipboard Management
+
+Author: Your Name <your.email@example.com>				*wind-author*
+License: MIT							*wind-license*
+
+INTRODUCTION						*wind*
+
+Wind.nvim is a Neovim plugin that provides advanced window management and
+clipboard utilities. It allows you to quickly focus or create windows by index,
+swap windows, and yank window contents with rich formatting options for AI
+assistance.
+
+TABLE OF CONTENTS
+
+    Introduction		|wind|
+    Installation		|wind-installation|
+    Configuration		|wind-configuration|
+    Windows Management	|wind-windows|
+    Clipboard Management	|wind-clipboard|
+    Keymaps			|wind-keymaps|
+    FAQ			|wind-faq|
+
+INSTALLATION						*wind-installation*
+
+Using lazy.nvim (recommended):
+>
+    {
+        "yourusername/wind.nvim",
+        config = function()
+            require("wind").setup({
+                windows = {
+                    max_windows = 6,
+                    keymaps = {
+                        focus_or_create_horizontal_window = "<leader>",
+                    },
+                },
+                clipboard = {
+                    ai = {
+                        include_path = true,
+                    },
+                },
+            })
+        end,
+    }
+<
+
+Using packer.nvim:
+>
+    use {
+        "yourusername/wind.nvim",
+        config = function()
+            require("wind").setup()
+        end,
+    }
+<
+
+CONNECTION						*wind-connection*
+
+The plugin creates the following global functions:
+    wind.focus_window(index)		Focus window by index
+    wind.yank_current_window()		Yank current window content
+
+CONFIGURATION						*wind-configuration*
+
+The plugin provides full IDE autocompletion. See |wind-config-types| for details.
+
+Basic setup:
+>
+    require("wind").setup({
+        windows = {
+            max_windows = 9,			-- Maximum windows to index (1-9)
+            excluded_filetypes = { "help" },	-- Filetypes to exclude
+            notify = true,			-- Show notifications
+            keymaps = {
+                focus_or_create_horizontal_window = "<leader>",  -- <leader>1, <leader>2, etc.
+                close_window = "<leader>q",			-- <leader>q1, <leader>q2, etc.
+            },
+        },
+        clipboard = {
+            empty_filepath = "[No Name]",		-- Text for unnamed files
+            notify = true,				-- Show notifications
+            ai = {
+                file_begin_text = "=== FILE BEGIN ===",	-- AI format markers
+                include_path = true,			-- Include file paths
+                include_filetype = true,		-- Include file types
+            },
+            keymaps = {
+                yank_current_window = "<leader>ya",	-- Yank current window
+                yank_windows_ai = "<leader>y*",		-- Yank all windows in AI format
+            },
+        },
+    })
+<
+
+WINDOWS MANAGEMENT					*wind-windows*
+
+Wind indexes your windows from 1 to |wind-config-windows-max_windows| (default: 9).
+You can focus, create, swap, or close windows using indexed keymaps.
+
+Configuration options:					*wind-config-windows*
+
+    • max_windows (integer, default: 9)		Maximum windows to index (1-9)
+    • excluded_filetypes (string[], default: {"help", "neo-tree"})
+						Filetypes to exclude from indexing
+    • index_help_windows (boolean, default: false)
+						Whether to index help windows
+    • zero_based_indexing (boolean, default: false)
+						Use 0-based indexing (0-8 instead of 1-9)
+    • notify (boolean, default: true)		Show notifications for operations
+    • keymaps (WindWindowsKeymaps|boolean, default: see below)
+						Keymap configuration, set to false to disable
+
+Keymap configuration:					*wind-config-windows-keymaps*
+
+    • focus_or_create_horizontal_window (string|boolean, default: "<leader>")
+					Prefix for focusing/creating horizontal windows
+					Examples: <leader>1, <leader>2 focus/create window 1, 2
+    • focus_or_create_vertical_window (string|boolean, default: "<leader>v")
+					Prefix for focusing/creating vertical windows
+					Examples: <leader>v1, <leader>v2 focus/create split window 1, 2
+    • swap_window (string|boolean, default: "<leader>x")
+					Prefix for swapping current window with target
+					Examples: <leader>x3 swaps current window with window 3
+    • close_window (string|boolean, default: "<leader>q")
+					Prefix for closing target window
+					Examples: <leader>q4 closes window 4
+    • close_window_and_swap (string|boolean, default: "<leader>z")
+					Close target and swap with next window
+					Examples: <leader>z5 closes window 5 and shifts windows
+
+To disable individual keymaps, set them to `false`:
+>
+    require("wind").setup({
+        windows = {
+            keymaps = {
+                close_window = false,		-- Disable <leader>q1, <leader>q2, etc.
+                swap_window = "<leader>s",	-- Custom swap keymap
+            },
+        },
+    })
+<
+
+To disable all window keymaps:
+>
+    windows = {
+        keymaps = false,  -- Disables all window keymaps
+    }
+<
+
+CLIPBOARD MANAGEMENT					*wind-clipboard*
+
+Wind provides powerful clipboard utilities for yanking window contents with
+rich formatting, especially designed for AI assistants.
+
+Configuration options:					*wind-config-clipboard*
+
+    • empty_filepath (string, default: "[No Name]")	Text for unnamed files
+    • notify (boolean, default: true)		Show notifications for operations
+    • ai (WindClipboardAIConfig, default: see below)
+					AI-friendly formatting options
+    • keymaps (WindClipboardKeymaps|boolean, default: see below)
+					Clipboard keymap configuration
+
+AI formatting configuration:				*wind-config-clipboard-ai*
+
+    • file_begin_text (string, default: "=== FILE BEGIN ===")
+					Text marker for file start in AI format
+    • content_begin_text (string, default: "--- CONTENT ---")
+					Text marker for content start in AI format
+    • file_end_text (string, default: "=== FILE END ===")
+					Text marker for file end in AI format
+    • separator (string, default: "\n")	Separator between multiple files
+    • include_path (boolean, default: true)	Include file path in AI format
+    • include_filetype (boolean, default: true)	Include file type in AI format
+    • include_line_count (boolean, default: true)	Include line count in AI format
+
+Example AI format output:
+>
+=== FILE BEGIN ===
+Path: /path/to/file.lua
+Filetype: lua
+Lines: 42
+--- CONTENT ---
+-- Your file content here
+=== FILE END ===
+<
+
+Clipboard keymaps:					*wind-config-clipboard-keymaps*
+
+    • yank_window (string|boolean, default: "<leader>y")
+					Prefix for yanking specific windows
+					Examples: <leader>y3 yanks window 3 content
+    • yank_current_window (string|boolean, default: "<leader>ya")
+					Yank current window content with path
+    • yank_current_window_ai (string|boolean, default: "<leader>y#")
+					Yank current window in AI format
+    • yank_windows_ai (string|boolean, default: "<leader>y*")
+					Yank all indexed windows in AI format
+    • yank_filename (string|boolean, default: "<leader>yn")
+					Yank current file's filename only
+
+To customize AI format for LLM use:
+>
+    require("wind").setup({
+        clipboard = {
+            ai = {
+                file_begin_text = "```lua",		-- Markdown code block
+                content_begin_text = "",		-- No content separator
+                file_end_text = "```",			-- Close code block
+                include_path = false,			-- Don't include paths
+                separator = "\n\n---\n\n",		-- Separate files clearly
+            },
+            keymaps = {
+                yank_current_window_ai = "<leader>ya",	-- Primary AI keymap
+                yank_windows_ai = false,		-- Disable multi-window
+            },
+        },
+    })
+<
+
+TYPES							*wind-config-types*
+
+The plugin provides full IDE autocompletion through Lua LSP types:
+
+Full configuration:					*WindConfig*
+>
+    @class WindConfig
+    @field windows WindWindowsConfig Windows management configuration
+    @field clipboard WindClipboardConfig Clipboard management configuration
+<
+
+Windows configuration:					*WindWindowsConfig*
+>
+    @class WindWindowsConfig
+    @field excluded_filetypes string[] Filetypes to exclude from window indexing
+    @field max_windows integer Maximum number of windows to index (1-9)
+    @field keymaps? WindWindowsKeymaps|boolean Window keymaps configuration
+<
+
+For complete type definitions, see the source code or use your IDE's hover
+documentation.
+
+KEYMAPS						*wind-keymaps*
+
+By default, the plugin creates indexed keymaps (1-9) for window operations:
+
+Window keymaps (default):			*wind-default-keymaps-windows*
+    <leader>1 - <leader>9		Focus or create horizontal window 1-9
+    <leader>v1 - <leader>v9		Focus or create vertical window 1-9
+    <leader>x1 - <leader>x9		Swap current window with window 1-9
+    <leader>q1 - <leader>q9		Close window 1-9
+    <leader>z1 - <leader>z9		Close window 1-9 and swap
+
+Clipboard keymaps (default):			*wind-default-keymaps-clipboard*
+    <leader>y1 - <leader>y9		Yank window 1-9 content
+    <leader>ya				Yank current window with path
+    <leader>y#				Yank current window in AI format
+    <leader>y*				Yank all windows in AI format
+    <leader>yn				Yank current filename
+
+All keymaps work in normal and visual modes.
+
+CUSTOMIZATION					*wind-customization*
+
+Disable all keymaps:
+>
+    require("wind").setup({
+        windows = { keymaps = false },
+        clipboard = { keymaps = false },
+    })
+<
+
+Custom keymaps:
+>
+    require("wind").setup({
+        windows = {
+            keymaps = {
+                focus_or_create_horizontal_window = "<C-h>",  -- <C-h>1, <C-h>2, etc.
+                close_window = false,				-- Disabled
+            },
+        },
+        clipboard = {
+            keymaps = {
+                yank_current_window = "<leader>cc",		-- Custom yank
+                yank_filename = "<leader>fn",			-- Custom filename
+            },
+        },
+    })
+<
+
+EXAMPLES						*wind-examples*
+
+Quick window navigation:
+>
+    " Focus window 3 horizontally
+    <leader>3
+
+    " Create vertical split for window 2
+    <leader>v2
+
+    " Swap current window with window 4
+    <leader>x4
+<
+
+AI-assisted development:
+>
+    " Yank current file in AI format for LLM
+    <leader>y#
+
+    " Yank multiple files for context
+    <leader>y*
+
+    " Yank just the filename for reference
+    <leader>yn
+<
+
+Window organization:
+>
+    " Close window 5 without affecting layout
+    <leader>q5
+
+    " Close window 3 and shift remaining windows
+    <leader>z3
+<
+
+FAQ							*wind-faq*
+
+Q: How do I see which window is which index?
+A: Window indices are shown in the statusline (if you have a statusline plugin)
+   or you can use |:Windows| to see the current window layout.
+
+Q: Why are some windows not indexed?
+A: Windows with excluded filetypes (|wind-config-windows-excluded_filetypes|)
+   or help windows (unless |wind-config-windows-index_help_windows| is true)
+   are not indexed.
+
+Q: Can I change the indexing from 1-9 to 0-8?
+A: Yes, set |wind-config-windows-zero_based_indexing| to true.
+
+Q: How do I disable notifications?
+A: Set |wind-config-windows-notify| and |wind-config-clipboard-notify| to false.
+
+Q: The keymaps conflict with my other plugins. How do I change them?
+A: See |wind-customization| for full keymap configuration options.
+
+TROUBLESHOOTING					*wind-troubleshooting*
+
+If keymaps don't work:
+1. Check that your leader key is set correctly (|mapleader|)
+2. Ensure no other plugins are overriding the same keymaps
+3. Verify the plugin is loaded after conflicting plugins
+
+If windows aren't indexed correctly:
+1. Check |wind-config-windows-excluded_filetypes|
+2. Verify |wind-config-windows-max_windows| is appropriate
+3. Ensure |wind-config-windows-index_help_windows| is set correctly for help files
+
+CREDITS						*wind-credits*
+
+-  Inspired by window management patterns in tmux and i3
+-  AI formatting based on common LLM prompting practices
+-  Type definitions follow Neovim LSP best practices
+
+SEE ALSO						*wind-see-also*
+
+-  |telescope.nvim|		Advanced fuzzy finder
+-  |harpoon|			Quick file and window navigation
+-  |which-key.nvim|		Keymap helper and display
+
+vim:tw=78:ts=8:noet:ft=help:norl:fen:fdl=0:fmr=[[:help wind-]:wind-]:tags=./doc/tags,./doc/tags-?:
