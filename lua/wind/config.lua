@@ -11,8 +11,6 @@ M.defaults = {
 		index_help_windows = false,
 
 		max_windows = 9,
-		horizontal_direction = "right", -- "left" | "right"
-		vertical_direction = "down", -- "up" | "down"
 		zero_based_indexing = false,
 
 		notify = true,
