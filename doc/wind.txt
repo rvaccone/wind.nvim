@@ -1,7 +1,4 @@
-*wind.nvim* Wind.nvim
-
-Author: Rocco Vaccone *wind-author*
-License: MIT *wind-license*
+Wind.nvim *wind.nvim*
 
 INTRODUCTION *wind*
 
