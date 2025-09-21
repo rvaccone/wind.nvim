@@ -70,10 +70,22 @@ function M.create_window(split_direction)
 
 	cmd(split_direction)
 
+	local hdir = windows_config.horizontal_direction or "right"
+	local vdir = windows_config.vertical_direction or "down"
+	-- Vertical split
 	if split_direction == "vsplit" then
-		cmd(windows_config.horizontal_direction == "left" and "wincmd h" or "wincmd l")
-	else
-		cmd(windows_config.vertical_direction == "up" and "wincmd k" or "wincmd j")
+		if hdir == "left" then
+			cmd("leftabove vsplit")
+		else
+			cmd("rightbelow vsplit")
+		end
+	-- Horizontal split
+	elseif split_direction == "split" then
+		if vdir == "up" then
+			cmd("leftabove split")
+		else
+			cmd("rightbelow split")
+		end
 	end
 	cmd("enew")
 end
