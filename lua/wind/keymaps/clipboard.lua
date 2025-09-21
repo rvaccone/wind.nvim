@@ -21,6 +21,20 @@ function M.setup(config)
 			clipboard.yank_with_path()
 		end, { desc = "Yank current window with path", noremap = true, silent = true })
 	end
+
+	-- Yank windows in AI format
+	if keymaps_config.yank_windows_ai then
+		keymap.set({ "n", "v" }, keymaps_config.yank_windows_ai, function()
+			clipboard.yank_windows_ai()
+		end, { desc = "Yank windows in AI format", noremap = true, silent = true })
+	end
+
+	-- Yank filename
+	if keymaps_config.yank_filename then
+		keymap.set({ "n", "v" }, keymaps_config.yank_filename, function()
+			clipboard.yank_filename()
+		end, { desc = "Yank filename", noremap = true, silent = true })
+	end
 end
 
 return M
