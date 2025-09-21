@@ -42,7 +42,7 @@ function M.compose_buffer_content_with_path(cwd, buf)
 	buf = buf or 0
 	local buffer_content = api.nvim_buf_get_lines(buf, 0, -1, false)
 	local abs_path = api.nvim_buf_get_name(buf)
-	local display_path = relativize_path(abs_path, cwd)
+	local display_path = M.relativize_path(abs_path, cwd)
 	return string.format("%s:\n%s", display_path, table.concat(buffer_content, "\n"))
 end
 
