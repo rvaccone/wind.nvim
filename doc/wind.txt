@@ -1,54 +1,492 @@
-*wind.nvim*		Wind - Window and Clipboard Management
+*wind.nvim* Wind.nvim
 
 Author: Rocco Vaccone *wind-author*
 License: MIT *wind-license*
 
 INTRODUCTION *wind*
 
-Wind.nvim is a Neovim plugin to provide window management and clipboard utilities. It allows you to quickly focus or create windows by index, swap windows, and yank window contents formatting options for AI assistance. Move as fast as wind with this plugin.
+Wind.nvim is a Neovim plugin to provide window management
+and clipboard utilities. It allows you to quickly focus or
+create windows by index, swap windows, and yank window contents
+formatting options for AI assistance. Move as fast as wind with
+this plugin.
 
 TABLE OF CONTENTS
 
-    Introduction		|wind|
-    Installation		|wind-installation|
-    Configuration		|wind-configuration|
-    Windows Management	|wind-windows|
-    Clipboard Management	|wind-clipboard|
-    Keymaps			|wind-keymaps|
-    FAQ			|wind-faq|
+    Introduction |wind|
+    Installation |wind-installation|
+	Quick Start |wind-quick-start|
+    Configuration |wind-configuration|
+	Windows	|wind-windows|
+	Windows Configuration |wind-windows-configuration|
+	Clipboard |wind-clipboard|
+	Clipboard Configuration |wind-clipboard-configuration|
+	Potential Improvements |wind-improvements|
 
-INSTALLATION						*wind-installation*
+INSTALLATION *wind-installation*
 
 Using lazy.nvim (recommended):
 >
     {
-        "yourusername/wind.nvim",
-        config = function()
-            require("wind").setup({
-                windows = {
-                    max_windows = 6,
-                    keymaps = {
-                        focus_or_create_horizontal_window = "<leader>",
-                    },
-                },
-                clipboard = {
-                    ai = {
-                        include_path = true,
-                    },
-                },
-            })
-        end,
+        "rvaccone/wind.nvim",
+		---@type WindConfig
+		opts = {}
     }
 <
 
 Using packer.nvim:
 >
     use {
-        "yourusername/wind.nvim",
+        "rvaccone/wind.nvim",
         config = function()
-            require("wind").setup()
+            require("wind").setup(
+				---@type WindConfig
+				{}
+			)
         end,
     }
 <
 
-vim:tw=78:ts=8:noet:ft=help:norl:fen:fdl=0:tags=./doc/tags,./doc/tags-?:
+QUICK START *wind-quick-start*
+
+Wind.nvim provides intuitive window management and clipboard utilities.
+To illustrate, try these basic commands after installing the plugin:
+>
+	<leader>2 -- Create a new horizontal window
+	<leader>1 -- Focus back on window 1
+	<leader>x2 -- Swap window 1 with window 2
+	<leader>ya -- Yank current window with filepath
+	<leader>y* -- Yank all windows in an AI format
+<
+
+CONFIGURATION *wind-configuration*
+
+Here is the default configuration:
+>
+{
+	windows = {
+		excluded_filetypes = { "help", "neo-tree" },
+		index_help_windows = false,
+		max_windows = 9,
+		zero_based_indexing = false,
+		notify = true,
+		keymaps = {
+			focus_or_create_horizontal_window = "<leader>",
+			focus_or_create_vertical_window = "<leader>v",
+			swap_window = "<leader>x",
+			close_window = "<leader>q",
+			close_window_and_swap = "<leader>z",
+		},
+	},
+
+	clipboard = {
+		empty_filepath = "[No Name]",
+		notify = true,
+		ai = {
+			file_begin_text = "=== FILE BEGIN ===",
+			content_begin_text = "--- CONTENT ---",
+			file_end_text = "=== FILE END ===",
+			separator = "\n",
+			include_filetype = true,
+			include_line_count = true,
+			include_path = true,
+		},
+		keymaps = {
+			yank_current_window = "<leader>ya",
+			yank_current_window_ai = "<leader>y#",
+			yank_windows_ai = "<leader>y*",
+			yank_filename = "<leader>yn",
+		},
+	},
+}
+<
+
+You only need to specify options you want to change. The plugin will merge
+your configuration with the defaults using |vim.tbl_deep_extend()|. More
+information on the configuration options will be found in each respective
+section to better explain what each option does.
+
+WINDOWS MANAGEMENT *wind-windows*
+
+The primary purpose of Wind.nvim is to provide intuitive window management.
+It automatically indexes your windows and provides keymaps to focus, create,
+swap, and close them by index.
+
+Window indexing works as follows:
+>
+    +----------------+  +----------------+  +----------------+  +----------------+
+    | Window 1       |  | Window 2       |  | Window 3       |  | Window 4       |
+    | Neo-tree       |  | file 1         |  | file 2         |  | help           |
+    | (excluded)     |  | (indexed)      |  | (indexed)      |  | (excluded)     |
+    +----------------+  +----------------+  +----------------+  +----------------+
+	                    index: 1            index: 2
+<
+
+The first window is indexed at index 1, then windows are indexed left-to-right
+and top-to-bottom. Here's a slightly more complicated example with horizontal and
+vertical windows:
+>
+    +----------------+  +----------------+  +------------------------------------+
+    | Window 1       |  | Window 2       |  | Window 3                           |
+    | Neo-tree       |  | file 1         |  | file 2                             |
+    | (excluded)     |  | (indexed)      |  | (indexed)                          |
+    +----------------+  +----------------+  +------------------------------------+
+	                	index: 1            index: 2
+
+											+----------------+  +----------------+
+											| Window 4       |  | Window 5       |
+											| file 3         |  | file 4         |
+											| (indexed)      |  | (indexed)      |
+											+----------------+  +----------------+
+											index: 3            index: 4
+<
+
+For simplicity, the plugin will always create new windows at the last indexed window. As
+a result, windows will always follow the same direction towards the bottom-right. However,
+if you manually create a window before the last indexed window, indexing will prioritize
+left-to-right and then top-to-bottom. Take this example:
+
+>
+    +----------------+  +------------------------------------+  +------------------------------------+
+    | Window 1       |  | Window 2                           |  | Window 3                           |
+    | Neo-tree       |  | file 2                             |  | file 3                             |
+    | (excluded)     |  | (indexed)                          |  | (indexed)                          |
+    +----------------+  +------------------------------------+  +------------------------------------+
+	                	index: 1                                index: 2
+
+						+----------------+  +----------------+  +----------------+  +----------------+
+						| Window 4       |  | Window 5       |  | Window 6       |  | Window 7       |
+						| file 4         |  | file 5         |  | file 6         |  | file 7         |
+						| (indexed)      |  | (indexed)      |  | (indexed)      |  | (indexed)      |
+						+----------------+  +----------------+  +----------------+  +----------------+
+						index: 3            index: 4            index: 5            index: 6
+<
+
+Wind.nvim can not create this layout currently because it does not support splits
+at a specific index. However, since the indexing is dynamic, Wind.nvim will still
+work properly to focus between the windows. Ideally, in the future, Wind.nvim would
+support splits at a specific index to enable similar layouts.
+
+WINDOWS CONFIGURATION *wind-windows-configuration*
+
+Now that you know how the plugin indexes your windows, let's talk about
+configuration options for the plugin.
+
+windows.excluded_filetypes *wind-config-windows-excluded_filetypes*
+	type: string[]
+	default: {"help", "neo-tree"}
+
+	Filetypes that should be excluded from window indexing. Windows with these
+	filetypes will not be included in the indexing process.
+
+windows.index_help_windows *wind-config-windows-index_help_windows*
+	type: boolean
+	default: false
+
+	Whether to index help windows.
+
+windows.max_windows *wind-config-windows-max_windows*
+	type: integer
+	default: 9
+
+	Maximum number of windows to index. Take into account that if this value is
+	greater than 9, vim will add a slight delay to the keymaps to avoid conflicts.
+	For example, if you set this value to 10, vim will have a slight delay when you
+	press `<leader>1` to determine if you want to focus window 1 or are about to
+	create or focus window 10.
+
+windows.zero_based_indexing *wind-config-windows-zero_based_indexing*
+	type: boolean
+	default: false
+
+	Whether to use 0-based indexing instead of 1-based indexing. It's recommended
+	to use the 0 index for your filetree or similar.
+
+windows.notify *wind-config-windows-notify*
+	type: boolean
+	default: true
+
+	Whether to show notifications for window operations.
+
+windows.keymaps *wind-config-windows-keymaps*
+	type: WindWindowsKeymaps|boolean
+	default: see below
+
+	Keymap configuration for window management. You can set it to `false` to disable
+	all window keymaps.
+
+	focus_or_create_horizontal_window *wind-config-windows-keymaps-focus_or_create_horizontal_window*
+		type: string|boolean
+		default: "<leader>"
+
+		Keymap prefix for focusing/creating horizontal windows (windows that are split vertically).
+		Set to `false` to disable this keymap.
+
+	focus_or_create_vertical_window *wind-config-windows-keymaps-focus_or_create_vertical_window*
+		type: string|boolean
+		default: "<leader>v"
+
+		Keymap prefix for focusing/creating vertical windows (windows that are split horizontally).
+		Set to `false` to disable this keymap.
+
+	swap_window *wind-config-windows-keymaps-swap_window*
+		type: string|boolean
+		default: "<leader>x"
+
+		Keymap prefix for swapping current window with target window.
+		Set to `false` to disable this keymap.
+
+	close_window *wind-config-windows-keymaps-close_window*
+		type: string|boolean
+		default: "<leader>q"
+
+		Keymap prefix for closing target window. Set to `false` to disable this keymap.
+
+	close_window_and_swap *wind-config-windows-keymaps-close_window_and_swap*
+		type: string|boolean
+		default: "<leader>z"
+
+		Keymap prefix for closing target window and swapping with next window.
+		Set to `false` to disable this keymap.
+
+CLIPBOARD  *wind-clipboard*
+
+To compliment the window management, Wind.nvim also provides clipboard utilities to
+simply move faster. Each clipboard command features a relative filepath to make it
+more intuitive to distinguish between copied files.
+
+It also provides AI-friendly formatting options to make it easier to use with LLMs.
+This format helps by providing more metadata about the file and more clearly separating
+files. For example, each AI-formatted file will look like this:
+>
+	=== FILE BEGIN ===
+	Path: (relative path)
+	Filetype: (filetype)
+	Lines: (number of lines)
+	--- CONTENT ---
+	(file content)
+	=== FILE END ===
+<
+
+CLIPBOARD CONFIGURATION *wind-clipboard-configuration*
+
+Clipboard configuration options are straightforward.
+
+clipboard.empty_filepath *wind-config-clipboard-empty_filepath*
+	type: string
+	default: "[No Name]"
+
+	Filepath to use when the file has no path. For example, blank or unnamed files will
+	have this filepath.
+
+clipboard.notify *wind-config-clipboard-notify*
+	type: boolean
+	default: true
+
+	Whether to show notifications for clipboard operations.
+
+clipboard.ai *wind-config-clipboard-ai*
+	type: WindClipboardAIConfig
+	default: see below
+
+	AI-friendly formatting options for clipboard operations.
+
+	file_begin_text *wind-config-clipboard-ai-file_begin_text*
+		type: string
+		default: "=== FILE BEGIN ==="
+
+		Text to use at the beginning of the clipboard file.
+
+	content_begin_text *wind-config-clipboard-ai-content_begin_text*
+		type: string
+		default: "--- CONTENT ---"
+
+		Text to use at the beginning of the clipboard content. Note that this text
+		will be followed by a newline.
+
+	file_end_text *wind-config-clipboard-ai-file_end_text*
+		type: string
+		default: "=== FILE END ==="
+
+		Text to use at the end of the clipboard file.
+
+	separator *wind-config-clipboard-ai-separator*
+		type: string
+		default: "\n"
+
+		Separator to use between multiple files.
+
+	include_filetype *wind-config-clipboard-ai-include_filetype*
+		type: boolean
+		default: true
+
+		Whether to include the filetype in the clipboard file.
+
+	include_line_count *wind-config-clipboard-ai-include_line_count*
+		type: boolean
+		default: true
+
+		Whether to include the number of lines in the clipboard file.
+
+	include_path *wind-config-clipboard-ai-include_path*
+		type: boolean
+		default: true
+
+		Whether to include the relative file path in the clipboard file.
+
+clipboard.keymaps *wind-config-clipboard-keymaps*
+	type: WindClipboardKeymaps|boolean
+	default: see below
+
+	Keymap configuration for clipboard operations. You can set it to `false` to disable
+	all clipboard keymaps.
+
+	yank_current_window *wind-config-clipboard-keymaps-yank_current_window*
+		type: string|boolean
+		default: "<leader>ya"
+
+		Keymap for yanking the current window. Set to `false` to disable this keymap.
+
+	yank_current_window_ai *wind-config-clipboard-keymaps-yank_current_window_ai*
+		type: string|boolean
+		default: "<leader>y#"
+
+		Keymap for AI-formatted current window. Set to `false` to disable this keymap.
+
+	yank_windows_ai *wind-config-clipboard-keymaps-yank_windows_ai*
+		type: string|boolean
+		default: "<leader>y*"
+
+		Keymap for AI-formatted all windows. Set to `false` to disable this keymap.
+
+	yank_filename *wind-config-clipboard-keymaps-yank_filename*
+		type: string|boolean
+		default: "<leader>yn"
+
+		Keymap for yanking the filename of the current buffer. Set to `false`
+		to disable this keymap.
+
+POTENTIAL IMPROVEMENTS *wind-improvements*
+
+Wind.nvim works well to give you a quick and intuitive way to navigate and
+manage your windows. However, this plugin is a modified version of my
+prior Neovim configuration, and I did not consider more advanced features.
+
+Below are some potential improvements I would like to see in the future. If
+you have any suggestions or ideas, please open an issue or pull request on
+the GitHub repository.
+
+- Better window creation
+
+	Currently, the plugin creates new windows at the end of the editor window
+	list. This is a great way to simplify window navigation, but it limits
+	some layout possibilities as outlined in |wind-windows-configuration|.
+
+	For the most part, if a window already has a split in the same direction as
+	the new window, it should be created at the end of the editor window list.
+	This aligns with how users expect to create new windows. For example, assume
+	you have two horizontal windows already. If you want to create a new horizontal
+	window, the new window should be created after the existing windows, even if the
+	current window has windows underneath it.
+
+	However, this changes when the new window orientation is different from the
+	existing windows. For example, assume you have two horizontal windows. If you
+	want to create a new vertical window, the new window should be created under the
+	current window instead of underneath both windows.
+
+	The main issue is with more complex layouts. For example, let's assume you have
+	four windows arranged like this:
+	>
+		+------------------------------------+  +----------------+
+		| Window 1                           |  | Window 3       |
+		| file 1                             |  | file 2         |
+		| (excluded)                         |  | (indexed)      |
+		+------------------------------------+  +----------------+
+		indexed: 1                              indexed: 2
+
+		+----------------+  +----------------+
+		| Window 3       |  | Window 4       |
+		| file 3         |  | file 4         |
+		| (indexed)      |  | (indexed)      |
+		+----------------+  +----------------+
+		indexed: 3          indexed: 4
+	<
+
+	In this layout, let's assume that a user wants to create a new vertical window below
+	window 1. Where would they expect it to go? Would it make sense to have it between
+	windows 1 and windows 3/4? Or would users prefer to follow the direction of windows
+	3/4 and have it horizontal with them?
+
+	>
+		Option 1:
+		+------------------------------------+  +----------------+
+		| Window 1                           |  | Window 3       |
+		| file 1                             |  | file 2         |
+		| (excluded)                         |  | (indexed)      |
+		+------------------------------------+  +----------------+
+		indexed: 1                              indexed: 2
+
+		+------------------------------------+
+		| Window 5                           |
+		| file 5                             |
+		| (indexed)                          |
+		+------------------------------------+
+		indexed: 3
+
+		+----------------+  +----------------+
+		| Window 3       |  | Window 4       |
+		| file 3         |  | file 4         |
+		| (indexed)      |  | (indexed)      |
+		+----------------+  +----------------+
+		indexed: 4          indexed: 4
+
+		Option 2:
+		+--------------------------------------------------------+  +----------------+
+		| Window 1                                               |  | Window 3       |
+		| file 1                                                 |  | file 2         |
+		| (indexed)                                              |  | (indexed)      |
+		+--------------------------------------------------------+  +----------------+
+		indexed: 1                                                  indexed: 2
+
+		+----------------+  +----------------+  +----------------+
+		| Window 3       |  | Window 4       |  | Window 5       |
+		| file 3         |  | file 4         |  | file 5         |
+		| (indexed)      |  | (indexed)      |  | (indexed)      |
+		+----------------+  +----------------+  +----------------+
+		indexed: 3          indexed: 4          indexed: 5
+	<
+
+
+- Timeout to show window indexes
+
+	Currently, the plugin does not show window indexes at all. This helps ensure
+	that users are intentional with their window navigation. However, it could
+	be helpful for users to see indexes after a delay when they start using
+	keymaps that prefix window indexes.
+
+- Add new window movement commands
+
+	The only way to move windows right now is to swap surrounding windows. There
+	should be new commands to automatically do this for you. Ideally, we would have
+	`<leader>xh`, `<leader>xj`, `<leader>xk`, and `<leader>xl` commands to move
+	windows in a certain direction. These commands run into similar issues as where
+	the plugin should create new windows.
+
+- Animations for window operations
+
+	Currently, the plugin only shows notifications for window operations. However,
+	having the option for animations would help users have a better experience.
+
+- Clipboard option to allow for absolute paths
+
+	Currently, the clipboard plugin only allows for relative paths for
+	convenience. However, it would be helpful to have an option to allow for
+	absolute paths.
+
+- Public API for window and clipboard operations
+
+	The plugin currently exposes a few functions for window and clipboard
+	operations. However, it would be helpful to have a public API for these
+	functions to allow for more advanced use cases.
+
+vim:tw=78:ts=8:ft=help:norl:
