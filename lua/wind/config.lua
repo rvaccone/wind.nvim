@@ -5,45 +5,34 @@ local M = {}
 
 -- Default configuration
 M.defaults = {
-	-- Windows management
 	windows = {
 		excluded_filetypes = { "help", "neo-tree" },
 		index_help_windows = false,
-
 		max_windows = 9,
 		zero_based_indexing = false,
-
 		notify = true,
-
 		keymaps = {
-			focus_or_create_horizontal_window = "<leader>", -- Prefix with window index
-			focus_or_create_vertical_window = "<leader>v", -- Prefix with window index
-			swap_window = "<leader>x", -- Prefix with window index
-			close_window = "<leader>q", -- Prefix with window index
-			close_window_and_swap = "<leader>z", -- Prefix with window index
+			focus_or_create_horizontal_window = "<leader>", -- Prefix
+			focus_or_create_vertical_window = "<leader>v", -- Prefix
+			swap_window = "<leader>x", -- Prefix
+			close_window = "<leader>q", -- Prefix
+			close_window_and_swap = "<leader>z", -- Prefix
 		},
 	},
 
-	-- Clipboard management
 	clipboard = {
-
+		empty_filepath = "[No Name]",
+		notify = true,
 		ai = {
 			file_begin_text = "=== FILE BEGIN ===",
 			content_begin_text = "--- CONTENT ---",
 			file_end_text = "=== FILE END ===",
 			separator = "\n",
-
-			include_path = true,
 			include_filetype = true,
 			include_line_count = true,
+			include_path = true,
 		},
-
-		empty_filepath = "[No Name]",
-
-		notify = true,
-
 		keymaps = {
-			yank_window = "<leader>y", -- Prefix with window index
 			yank_current_window = "<leader>ya",
 			yank_current_window_ai = "<leader>y#",
 			yank_windows_ai = "<leader>y*",
