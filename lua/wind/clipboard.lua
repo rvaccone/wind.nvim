@@ -63,7 +63,7 @@ local function compose_block_for_window(win, cwd)
 end
 
 --- Yank buffer contents and file paths for all open windows
-function M.yank_all_with_path()
+function M.yank_windows_ai()
 	local clipboard_config = M.get_config()
 	local editor_windows = windows.list_content_windows()
 
