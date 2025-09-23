@@ -63,7 +63,6 @@ Here is the default configuration:
 {
 	windows = {
 		excluded_filetypes = { "help", "neo-tree" },
-		index_help_windows = false,
 		max_windows = 9,
 		zero_based_indexing = false,
 		notify = true,
@@ -175,12 +174,6 @@ configuration options for the plugin.
 
 	Filetypes that should be excluded from window indexing. Windows with these
 	filetypes will not be included in the indexing process.
-
-`windows.index_help_windows` *wind-config-windows-index_help_windows*
-	type: boolean
-	default: false
-
-	Whether to index help windows.
 
 `windows.max_windows` *wind-config-windows-max_windows*
 	type: integer

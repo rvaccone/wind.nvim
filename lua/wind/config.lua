@@ -5,7 +5,6 @@ local M = {}
 
 ---@class WindWindowsConfig
 ---@field excluded_filetypes string[] Filetypes to exclude from window indexing
----@field index_help_windows boolean Whether to index help windows
 ---@field max_windows integer Maximum number of windows to index
 ---@field zero_based_indexing boolean Use 0-based indexing instead of 1-based
 ---@field notify boolean Show notifications for window operations
@@ -49,7 +48,6 @@ local M = {}
 M.defaults = {
 	windows = {
 		excluded_filetypes = { "help", "neo-tree" },
-		index_help_windows = false,
 		max_windows = 9,
 		zero_based_indexing = false,
 		notify = true,

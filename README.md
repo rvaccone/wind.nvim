@@ -69,7 +69,6 @@ Here is the default configuration:
 {
 	windows = {
 		excluded_filetypes = { "help", "neo-tree" },
-		index_help_windows = false,
 		max_windows = 9,
 		zero_based_indexing = false,
 		notify = true,
