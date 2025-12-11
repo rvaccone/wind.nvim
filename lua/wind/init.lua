@@ -13,7 +13,6 @@ local wind = {}
 function wind.setup(opts)
 	-- Setup the config module
 	config.setup(opts)
-	local _config = config.get()
 
 	-- Get config sections
 	local clipboard_config = config.get_section("clipboard")

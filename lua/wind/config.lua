@@ -47,7 +47,7 @@ local M = {}
 ---@type WindConfig
 M.defaults = {
 	windows = {
-		excluded_filetypes = { "help", "neo-tree" },
+		excluded_filetypes = { "help", "neo-tree", "notify" },
 		max_windows = 9,
 		zero_based_indexing = false,
 		notify = true,
