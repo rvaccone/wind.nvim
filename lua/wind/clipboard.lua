@@ -1,10 +1,8 @@
 -- Localized vim variables
 local api = vim.api
-local cmd = vim.cmd
 local fn = vim.fn
 local log = vim.log
 local notify = vim.notify
-local tbl_contains = vim.tbl_contains
 
 -- Local modules
 local config = require("wind.config")

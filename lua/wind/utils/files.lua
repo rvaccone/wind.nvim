@@ -1,9 +1,6 @@
 -- Localized vim variables
 local api = vim.api
 local fn = vim.fn
-local keymap = vim.keymap
-local log = vim.log
-local notify = vim.notify
 local pesc = vim.pesc
 
 local M = {}

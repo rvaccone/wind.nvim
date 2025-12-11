@@ -1,6 +1,3 @@
--- Localized vim variables
-local tbl_deep_extend = vim.tbl_deep_extend
-
 -- Local modules
 local config = require("wind.config")
 local clipboard = require("wind.clipboard")
