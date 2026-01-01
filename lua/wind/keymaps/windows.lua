@@ -60,6 +60,12 @@ function M.setup(windows_config)
 	end
 
 	-- Create the static keymaps
+	if keymaps ~= nil and keymaps.toggle_maximize then
+		keymap.set({ "n", "v" }, keymaps.toggle_maximize, function()
+			windows.toggle_maximize()
+		end, { desc = "Toggle maximize", noremap = true, silent = true })
+	end
+
 	if keymaps ~= nil and keymaps.create_horizontal_window_after_current then
 		keymap.set({ "n", "v" }, keymaps.create_horizontal_window_after_current, function()
 			windows.create_window_after_current("vsplit")

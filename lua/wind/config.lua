@@ -16,6 +16,7 @@ local M = {}
 ---@field swap_window? string|false Keymap prefix for swapping windows
 ---@field close_window? string|false Keymap prefix for closing windows
 ---@field close_window_and_swap? string|false Keymap prefix for close-and-swap
+---@field toggle_maximize? string|false Keymap for toggling maximization on the current window
 ---@field create_horizontal_window_after_current? string|false Keymap for creating horizontal window after current
 ---@field create_horizontal_window_before_current? string|false Keymap for creating horizontal window before current
 ---@field create_vertical_window_after_current? string|false Keymap for creating vertical window after current
@@ -61,6 +62,7 @@ M.defaults = {
 			swap_window = "<leader>x", -- Prefix
 			close_window = "<leader>q", -- Prefix
 			close_window_and_swap = "<leader>z", -- Prefix
+			toggle_maximize = "<leader>wm",
 			create_horizontal_window_after_current = "<leader>wh",
 			create_horizontal_window_before_current = "<leader>wH",
 			create_vertical_window_after_current = "<leader>wv",

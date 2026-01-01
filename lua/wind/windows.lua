@@ -1,6 +1,7 @@
 -- Localized vim variables
 local api = vim.api
 local cmd = vim.cmd
+local fn = vim.fn
 local log = vim.log
 local notify = vim.notify
 local tbl_contains = vim.tbl_contains
@@ -11,6 +12,7 @@ local config = require("wind.config")
 local M = {}
 
 M._windows_config = nil
+M._maximize_state = nil
 
 --- Setup function to receive the merged config
 function M.setup(windows_config)
@@ -236,6 +238,21 @@ function M.swap_window(target_window_number)
 		local current_user_index = windows_config.zero_based_indexing and (current_window_index - 1)
 			or current_window_index
 		notify("Swapped window " .. current_user_index .. " with window " .. target_window_number, log.levels.INFO)
+	end
+end
+
+--- Toggle maximize current window
+function M.toggle_maximize()
+	if M._maximize_state then
+		cmd("tabclose")
+		M._maximize_state = nil
+	else
+		-- Save state and maximize
+		M._maximize_state = {
+			tab = fn.tabpagenr(),
+			win = api.nvim_get_current_win(),
+		}
+		cmd("tab split")
 	end
 end
 

@@ -78,8 +78,11 @@ Here is the default configuration:
 			swap_window = "<leader>x", -- Prefix
 			close_window = "<leader>q", -- Prefix
 			close_window_and_swap = "<leader>z", -- Prefix
+            toggle_maximize = "<leader>wm",
             create_horizontal_window_after_current = "<leader>wh",
+            create_horizontal_window_before_current = "<leader>wH",
 			create_vertical_window_after_current = "<leader>wv",
+			create_vertical_window_before_current = "<leader>wV",
 		},
 	},
 
@@ -125,6 +128,7 @@ By default, the plugin creates indexed keymaps (1-9) for most window operations:
 | `<leader>x1` - `<leader>x9` | Swap current window with window 1-9     |
 | `<leader>q1` - `<leader>q9` | Close window 1-9 without saving         |
 | `<leader>z1` - `<leader>z9` | Close window 1-9 with saving            |
+| `<leader>wm`                | Toggle maximize current window          |
 
 Clipboard keymaps:
 
