@@ -4,6 +4,7 @@ local cmd = vim.cmd
 local fn = vim.fn
 local log = vim.log
 local notify = vim.notify
+local o = vim.o
 local tbl_contains = vim.tbl_contains
 
 -- Local modules
@@ -245,13 +246,16 @@ end
 function M.toggle_maximize()
 	if M._maximize_state then
 		cmd("tabclose")
+		o.showtabline = M._maximize_state.showtabline
 		M._maximize_state = nil
 	else
 		-- Save state and maximize
 		M._maximize_state = {
+			showtabline = o.showtabline,
 			tab = fn.tabpagenr(),
 			win = api.nvim_get_current_win(),
 		}
+		o.showtabline = 0
 		cmd("tab split")
 	end
 end
