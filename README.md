@@ -73,11 +73,13 @@ Here is the default configuration:
 		zero_based_indexing = false,
 		notify = true,
 		keymaps = {
-			focus_or_create_horizontal_window = "<leader>",
-			focus_or_create_vertical_window = "<leader>v",
-			swap_window = "<leader>x",
-			close_window = "<leader>q",
-			close_window_and_swap = "<leader>z",
+			focus_or_create_horizontal_window = "<leader>", -- Prefix
+			focus_or_create_vertical_window = "<leader>v", -- Prefix
+			swap_window = "<leader>x", -- Prefix
+			close_window = "<leader>q", -- Prefix
+			close_window_and_swap = "<leader>z", -- Prefix
+            create_horizontal_window_after_current = "<leader>wh",
+			create_vertical_window_after_current = "<leader>wv",
 		},
 	},
 
@@ -110,15 +112,17 @@ Use `:h wind` for more information about each configuration option. However, her
 
 ## Default Keymaps
 
-By default, the plugin creates indexed keymaps (1-9) for window operations:
+By default, the plugin creates indexed keymaps (1-9) for most window operations:
 
-| Window keymaps              | Description                           |
-| --------------------------- | ------------------------------------- |
-| `<leader>1` - `<leader>9`   | Focus or create horizontal window 1-9 |
-| `<leader>v1` - `<leader>v9` | Focus or create vertical window 1-9   |
-| `<leader>x1` - `<leader>x9` | Swap current window with window 1-9   |
-| `<leader>q1` - `<leader>q9` | Close window 1-9 without saving       |
-| `<leader>z1` - `<leader>z9` | Close window 1-9 with saving          |
+| Window keymaps              | Description                            |
+| --------------------------- | -------------------------------------- |
+| `<leader>1` - `<leader>9`   | Focus or create horizontal window 1-9  |
+| `<leader>wh`                | Create horizontal window after current |
+| `<leader>v1` - `<leader>v9` | Focus or create vertical window 1-9    |
+| `<leader>wv`                | Create vertical window after current   |
+| `<leader>x1` - `<leader>x9` | Swap current window with window 1-9    |
+| `<leader>q1` - `<leader>q9` | Close window 1-9 without saving        |
+| `<leader>z1` - `<leader>z9` | Close window 1-9 with saving           |
 
 Clipboard keymaps:
 
