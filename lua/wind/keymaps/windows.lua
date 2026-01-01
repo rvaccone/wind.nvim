@@ -66,10 +66,22 @@ function M.setup(windows_config)
 		end, { desc = "Create horizontal window after current", noremap = true, silent = true })
 	end
 
+	if keymaps ~= nil and keymaps.create_horizontal_window_before_current then
+		keymap.set({ "n", "v" }, keymaps.create_horizontal_window_before_current, function()
+			windows.create_window_before_current("vsplit")
+		end, { desc = "Create horizontal window before current", noremap = true, silent = true })
+	end
+
 	if keymaps ~= nil and keymaps.create_vertical_window_after_current then
 		keymap.set({ "n", "v" }, keymaps.create_vertical_window_after_current, function()
 			windows.create_window_after_current("split")
 		end, { desc = "Create vertical window after current", noremap = true, silent = true })
+	end
+
+	if keymaps ~= nil and keymaps.create_vertical_window_before_current then
+		keymap.set({ "n", "v" }, keymaps.create_vertical_window_before_current, function()
+			windows.create_window_before_current("split")
+		end, { desc = "Create vertical window before current", noremap = true, silent = true })
 	end
 end
 

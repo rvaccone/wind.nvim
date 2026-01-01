@@ -45,6 +45,41 @@ function M.list_content_windows()
 	return editor_windows
 end
 
+--- Get the current window's index in the editor windows list
+---@return number|nil current_window_index The 1-based index, or nil if not found
+local function get_current_window_index()
+	local editor_windows = M.list_content_windows()
+	local current_window = api.nvim_get_current_win()
+
+	for i, window in ipairs(editor_windows) do
+		if window == current_window then
+			return i
+		end
+	end
+
+	return nil
+end
+
+--- Creates a window before the current window
+---@param split_direction "vsplit"|"split" The split direction to use when creating a new window
+---@return nil
+function M.create_window_before_current(split_direction)
+	local windows_config = M.get_config()
+	local editor_windows = M.list_content_windows()
+
+	-- Prevent creating a new window if the maximum number of windows has been reached
+	if #editor_windows >= windows_config.max_windows then
+		if windows_config.notify ~= false then
+			notify("Maximum number of windows reached", log.levels.WARN)
+		end
+		return
+	end
+
+	-- Split current window
+	cmd(split_direction)
+	cmd("enew")
+end
+
 --- Creates a window after the current window in the editor window list
 ---@param split_direction "vsplit"|"split" The split direction to use when creating a new window
 ---@return nil
@@ -148,15 +183,7 @@ function M.swap_window(target_window_number)
 	local current_window = api.nvim_get_current_win()
 
 	-- Find the current window's index in the editor windows list
-	local current_window_index = nil
-	for i, window in ipairs(editor_windows) do
-		if window == current_window then
-			current_window_index = i
-			break
-		end
-	end
-
-	-- Check if current window is a valid editor window
+	local current_window_index = get_current_window_index()
 	if not current_window_index then
 		if windows_config.notify ~= false then
 			notify("Current window is not a valid editor window", log.levels.WARN)

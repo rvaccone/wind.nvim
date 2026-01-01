@@ -114,15 +114,17 @@ Use `:h wind` for more information about each configuration option. However, her
 
 By default, the plugin creates indexed keymaps (1-9) for most window operations:
 
-| Window keymaps              | Description                            |
-| --------------------------- | -------------------------------------- |
-| `<leader>1` - `<leader>9`   | Focus or create horizontal window 1-9  |
-| `<leader>wh`                | Create horizontal window after current |
-| `<leader>v1` - `<leader>v9` | Focus or create vertical window 1-9    |
-| `<leader>wv`                | Create vertical window after current   |
-| `<leader>x1` - `<leader>x9` | Swap current window with window 1-9    |
-| `<leader>q1` - `<leader>q9` | Close window 1-9 without saving        |
-| `<leader>z1` - `<leader>z9` | Close window 1-9 with saving           |
+| Window keymaps              | Description                             |
+| --------------------------- | --------------------------------------- |
+| `<leader>1` - `<leader>9`   | Focus or create horizontal window 1-9   |
+| `<leader>wh`                | Create horizontal window after current  |
+| `<leader>wH`                | Create horizontal window before current |
+| `<leader>v1` - `<leader>v9` | Focus or create vertical window 1-9     |
+| `<leader>wv`                | Create vertical window after current    |
+| `<leader>wV`                | Create vertical window before current   |
+| `<leader>x1` - `<leader>x9` | Swap current window with window 1-9     |
+| `<leader>q1` - `<leader>q9` | Close window 1-9 without saving         |
+| `<leader>z1` - `<leader>z9` | Close window 1-9 with saving            |
 
 Clipboard keymaps:
 

@@ -17,7 +17,9 @@ local M = {}
 ---@field close_window? string|false Keymap prefix for closing windows
 ---@field close_window_and_swap? string|false Keymap prefix for close-and-swap
 ---@field create_horizontal_window_after_current? string|false Keymap for creating horizontal window after current
+---@field create_horizontal_window_before_current? string|false Keymap for creating horizontal window before current
 ---@field create_vertical_window_after_current? string|false Keymap for creating vertical window after current
+---@field create_vertical_window_before_current? string|false Keymap for creating vertical window before current
 
 ---@class WindClipboardAIConfig
 ---@field file_begin_text string Text marker for file start in AI format
@@ -60,7 +62,9 @@ M.defaults = {
 			close_window = "<leader>q", -- Prefix
 			close_window_and_swap = "<leader>z", -- Prefix
 			create_horizontal_window_after_current = "<leader>wh",
+			create_horizontal_window_before_current = "<leader>wH",
 			create_vertical_window_after_current = "<leader>wv",
+			create_vertical_window_before_current = "<leader>wV",
 		},
 	},
 
