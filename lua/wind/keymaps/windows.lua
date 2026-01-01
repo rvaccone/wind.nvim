@@ -24,35 +24,35 @@ function M.setup(windows_config)
 	-- Create the keymaps
 	for i = start_index, max_index do
 		-- Focus or create horizontal window
-		if keymaps.focus_or_create_horizontal_window then
+		if keymaps ~= nil and keymaps.focus_or_create_horizontal_window then
 			keymap.set({ "n", "v" }, keymaps.focus_or_create_horizontal_window .. i, function()
 				windows.focus_or_create_window(i, "vsplit")
 			end, { desc = "Focus or create horizontal window " .. i, noremap = true, silent = true })
 		end
 
 		-- Focus or create vertical window
-		if keymaps.focus_or_create_vertical_window then
+		if keymaps ~= nil and keymaps.focus_or_create_vertical_window then
 			keymap.set({ "n", "v" }, keymaps.focus_or_create_vertical_window .. i, function()
 				windows.focus_or_create_window(i, "split")
 			end, { desc = "Focus or create vertical window " .. i, noremap = true, silent = true })
 		end
 
 		-- Swap window
-		if keymaps.swap_window then
+		if keymaps ~= nil and keymaps.swap_window then
 			keymap.set({ "n", "v" }, keymaps.swap_window .. i, function()
 				windows.swap_window(i)
 			end, { desc = "Swap current window with window " .. i, noremap = true, silent = true })
 		end
 
 		-- Close window
-		if keymaps.close_window then
+		if keymaps ~= nil and keymaps.close_window then
 			keymap.set({ "n", "v" }, keymaps.close_window .. i, function()
 				windows.operate_on_window(i, "q!")
 			end, { desc = "Close window " .. i, noremap = true, silent = true })
 		end
 
 		-- Close window and swap
-		if keymaps.close_window_and_swap then
+		if keymaps ~= nil and keymaps.close_window_and_swap then
 			keymap.set({ "n", "v" }, keymaps.close_window_and_swap .. i, function()
 				windows.operate_on_window(i, "wq!")
 			end, { desc = "Close window " .. i .. " and swap", noremap = true, silent = true })
