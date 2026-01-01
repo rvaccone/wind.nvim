@@ -8,14 +8,16 @@ local M = {}
 ---@field max_windows integer Maximum number of windows to index
 ---@field zero_based_indexing boolean Use 0-based indexing instead of 1-based
 ---@field notify boolean Show notifications for window operations
----@field keymaps? WindWindowsKeymaps|boolean Window keymaps configuration
+---@field keymaps? WindWindowsKeymaps|false Window keymaps configuration
 
 ---@class WindWindowsKeymaps
----@field focus_or_create_horizontal_window? string|boolean Keymap prefix for horizontal windows
----@field focus_or_create_vertical_window? string|boolean Keymap prefix for vertical windows
----@field swap_window? string|boolean Keymap prefix for swapping windows
----@field close_window? string|boolean Keymap prefix for closing windows
----@field close_window_and_swap? string|boolean Keymap prefix for close-and-swap
+---@field focus_or_create_horizontal_window? string|false Keymap prefix for horizontal windows
+---@field focus_or_create_vertical_window? string|false Keymap prefix for vertical windows
+---@field swap_window? string|false Keymap prefix for swapping windows
+---@field close_window? string|false Keymap prefix for closing windows
+---@field close_window_and_swap? string|false Keymap prefix for close-and-swap
+---@field create_horizontal_window_after_current? string|false Keymap for creating horizontal window after current
+---@field create_vertical_window_after_current? string|false Keymap for creating vertical window after current
 
 ---@class WindClipboardAIConfig
 ---@field file_begin_text string Text marker for file start in AI format
@@ -30,14 +32,14 @@ local M = {}
 ---@field empty_filepath string Text to use when file has no path
 ---@field notify boolean Show notifications for clipboard operations
 ---@field ai WindClipboardAIConfig AI-friendly clipboard formatting options
----@field keymaps? WindClipboardKeymaps|boolean Clipboard keymaps configuration
+---@field keymaps? WindClipboardKeymaps|false Clipboard keymaps configuration
 
 ---@class WindClipboardKeymaps
----@field yank_window? string|boolean Keymap prefix for yanking specific windows
----@field yank_current_window? string|boolean Keymap for yanking current window
----@field yank_current_window_ai? string|boolean Keymap for AI-formatted current window
----@field yank_windows_ai? string|boolean Keymap for AI-formatted all windows
----@field yank_filename? string|boolean Keymap for yanking filename
+---@field yank_window? string|false Keymap prefix for yanking specific windows
+---@field yank_current_window? string|false Keymap for yanking current window
+---@field yank_current_window_ai? string|false Keymap for AI-formatted current window
+---@field yank_windows_ai? string|false Keymap for AI-formatted all windows
+---@field yank_filename? string|false Keymap for yanking filename
 
 ---@class WindConfig
 ---@field windows WindWindowsConfig Windows management configuration
@@ -57,6 +59,8 @@ M.defaults = {
 			swap_window = "<leader>x", -- Prefix
 			close_window = "<leader>q", -- Prefix
 			close_window_and_swap = "<leader>z", -- Prefix
+			create_horizontal_window_after_current = "<leader>wh",
+			create_vertical_window_after_current = "<leader>wv",
 		},
 	},
 

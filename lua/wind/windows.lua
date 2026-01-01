@@ -45,6 +45,30 @@ function M.list_content_windows()
 	return editor_windows
 end
 
+--- Creates a window after the current window in the editor window list
+---@param split_direction "vsplit"|"split" The split direction to use when creating a new window
+---@return nil
+function M.create_window_after_current(split_direction)
+	local windows_config = M.get_config()
+	local editor_windows = M.list_content_windows()
+
+	-- Prevent creating a new window if the maximum number of windows has been reached
+	if #editor_windows >= windows_config.max_windows then
+		if windows_config.notify ~= false then
+			notify("Maximum number of windows reached", log.levels.WARN)
+		end
+		return
+	end
+
+	cmd(split_direction)
+	if split_direction == "vsplit" then
+		cmd("wincmd l")
+	else
+		cmd("wincmd j")
+	end
+	cmd("enew")
+end
+
 --- Creates a window at the end of the editor window list
 ---@param split_direction "vsplit"|"split" The split direction to use when creating a new window
 ---@return nil

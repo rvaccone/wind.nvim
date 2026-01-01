@@ -21,7 +21,7 @@ function M.setup(windows_config)
 	local max_index = windows_config.zero_based_indexing and windows_config.max_windows - 1
 		or windows_config.max_windows
 
-	-- Create the keymaps
+	-- Create the dynamic keymaps
 	for i = start_index, max_index do
 		-- Focus or create horizontal window
 		if keymaps ~= nil and keymaps.focus_or_create_horizontal_window then
@@ -57,6 +57,19 @@ function M.setup(windows_config)
 				windows.operate_on_window(i, "wq!")
 			end, { desc = "Close window " .. i .. " and swap", noremap = true, silent = true })
 		end
+	end
+
+	-- Create the static keymaps
+	if keymaps ~= nil and keymaps.create_horizontal_window_after_current then
+		keymap.set({ "n", "v" }, keymaps.create_horizontal_window_after_current, function()
+			windows.create_window_after_current("vsplit")
+		end, { desc = "Create horizontal window after current", noremap = true, silent = true })
+	end
+
+	if keymaps ~= nil and keymaps.create_vertical_window_after_current then
+		keymap.set({ "n", "v" }, keymaps.create_vertical_window_after_current, function()
+			windows.create_window_after_current("split")
+		end, { desc = "Create vertical window after current", noremap = true, silent = true })
 	end
 end
 
