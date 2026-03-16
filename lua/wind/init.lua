@@ -7,7 +7,7 @@ local windows_keymaps = require("wind.keymaps.windows")
 
 local wind = {}
 
---- Setup function that lazy.nvim will call
+--- Setup function that their package manager will call
 ---@param opts WindConfig
 ---@return nil
 function wind.setup(opts)

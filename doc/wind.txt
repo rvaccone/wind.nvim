@@ -18,7 +18,6 @@ TABLE OF CONTENTS
 	Windows Configuration |wind-windows-configuration|
 	Clipboard |wind-clipboard|
 	Clipboard Configuration |wind-clipboard-configuration|
-	Potential Improvements |wind-improvements|
 
 INSTALLATION *wind-installation*
 
@@ -26,8 +25,8 @@ Using lazy.nvim (recommended):
 >
     {
         "rvaccone/wind.nvim",
-		---@type WindConfig
-		opts = {}
+	---@type WindConfig
+	opts = {}
     }
 <
 
@@ -37,9 +36,9 @@ Using packer.nvim:
         "rvaccone/wind.nvim",
         config = function()
             require("wind").setup(
-				---@type WindConfig
-				{}
-			)
+		---@type WindConfig
+		{}
+	    )
         end,
     }
 <
@@ -49,10 +48,14 @@ QUICK START *wind-quick-start*
 Wind.nvim provides intuitive window management and clipboard utilities.
 To illustrate, try these basic commands after installing the plugin:
 >
+    Windows:
 	<leader>2 -- Create a new horizontal window
 	<leader>1 -- Focus back on window 1
 	<leader>x2 -- Swap window 1 with window 2
+
+    Clipboard:
 	<leader>ya -- Yank current window with filepath
+	<leader>y# -- Yank current window in AI format
 	<leader>y* -- Yank all windows in an AI format
 <
 
@@ -62,7 +65,7 @@ Here is the default configuration:
 >
 {
 	windows = {
-		excluded_filetypes = { "help", "neo-tree" },
+		excluded_filetypes = { "help", "neo-tree", "notify" },
 		max_windows = 9,
 		zero_based_indexing = false,
 		notify = true,
@@ -355,128 +358,3 @@ Clipboard configuration options are straightforward.
 
 		Keymap for yanking the filename of the current buffer. Set to `false`
 		to disable this keymap.
-
-POTENTIAL IMPROVEMENTS *wind-improvements*
-
-Wind.nvim works well to give you a quick and intuitive way to navigate and
-manage your windows. However, this plugin is a modified version of my
-prior Neovim configuration, and I did not consider more advanced features.
-
-Below are some potential improvements I would like to see in the future. If
-you have any suggestions or ideas, please open an issue or pull request on
-the GitHub repository.
-
-- Better window creation
-
-	Currently, the plugin creates new windows at the end of the editor window
-	list. This is a great way to simplify window navigation, but it limits
-	some layout possibilities as outlined in |wind-windows-configuration|.
-
-	For the most part, if a window already has a split in the same direction as
-	the new window, it should be created at the end of the editor window list.
-	This aligns with how users expect to create new windows. For example, assume
-	you have two horizontal windows already. If you want to create a new horizontal
-	window, the new window should be created after the existing windows, even if the
-	current window has windows underneath it.
-
-	However, this changes when the new window orientation is different from the
-	existing windows. For example, assume you have two horizontal windows. If you
-	want to create a new vertical window, the new window should be created under the
-	current window instead of underneath both windows.
-
-	The main issue is with more complex layouts. For example, let's assume you have
-	four windows arranged like this:
-	>
-        +------------------------------------+  +----------------+
-        | Window 1                           |  | Window 3       |
-        | file 1                             |  | file 2         |
-        | (indexed)                          |  | (indexed)      |
-        +------------------------------------+  +----------------+
-        indexed: 1                              indexed: 2
-
-        +----------------+  +----------------+
-        | Window 3       |  | Window 4       |
-        | file 3         |  | file 4         |
-        | (indexed)      |  | (indexed)      |
-        +----------------+  +----------------+
-        indexed: 3          indexed: 4
-	<
-
-	In this layout, let's assume that a user wants to create a new vertical window below
-	window 1. Where would they expect it to go? Would it make sense to have it between
-	windows 1 and windows 3/4? Or would users prefer to follow the direction of windows
-	3/4 and have it horizontal with them?
-
-	>
-        Option 1:
-        +------------------------------------+  +----------------+
-        | Window 1                           |  | Window 3       |
-        | file 1                             |  | file 2         |
-        | (indexed)                          |  | (indexed)      |
-        +------------------------------------+  +----------------+
-        indexed: 1                              indexed: 2
-
-        +------------------------------------+
-        | Window 5                           |
-        | file 5                             |
-        | (indexed)                          |
-        +------------------------------------+
-        indexed: 3
-
-        +----------------+  +----------------+
-        | Window 3       |  | Window 4       |
-        | file 3         |  | file 4         |
-        | (indexed)      |  | (indexed)      |
-        +----------------+  +----------------+
-        indexed: 4          indexed: 4
-
-        Option 2:
-        +--------------------------------------------------------+  +----------------+
-        | Window 1                                               |  | Window 3       |
-        | file 1                                                 |  | file 2         |
-        | (indexed)                                              |  | (indexed)      |
-        +--------------------------------------------------------+  +----------------+
-        indexed: 1                                                  indexed: 2
-
-        +----------------+  +----------------+  +----------------+
-        | Window 3       |  | Window 4       |  | Window 5       |
-        | file 3         |  | file 4         |  | file 5         |
-        | (indexed)      |  | (indexed)      |  | (indexed)      |
-        +----------------+  +----------------+  +----------------+
-        indexed: 3          indexed: 4          indexed: 5
-	<
-
-
-- Timeout to show window indexes
-
-	Currently, the plugin does not show window indexes at all. This helps ensure
-	that users are intentional with their window navigation. However, it could
-	be helpful for users to see indexes after a delay when they start using
-	keymaps that prefix window indexes.
-
-- Add new window movement commands
-
-	The only way to move windows right now is to swap surrounding windows. There
-	should be new commands to automatically do this for you. Ideally, we would have
-	`<leader>xh`, `<leader>xj`, `<leader>xk`, and `<leader>xl` commands to move
-	windows in a certain direction. These commands run into similar issues as where
-	the plugin should create new windows.
-
-- Animations for window operations
-
-	Currently, the plugin only shows notifications for window operations. However,
-	having the option for animations would help users have a better experience.
-
-- Clipboard option to allow for absolute paths
-
-	Currently, the clipboard plugin only allows for relative paths for
-	convenience. However, it would be helpful to have an option to allow for
-	absolute paths.
-
-- Public API for window and clipboard operations
-
-	The plugin currently exposes a few functions for window and clipboard
-	operations. However, it would be helpful to have a public API for these
-	functions to allow for more advanced use cases.
-
-vim:tw=78:ts=8:ft=help:norl:
