@@ -2,11 +2,11 @@
 local api = vim.api
 local fn = vim.fn
 local log = vim.log
-local notify = vim.notify
 
 -- Local modules
 local config = require("wind.config")
 local files = require("wind.utils.files")
+local notifications = require("wind.utils.notifications")
 local windows = require("wind.windows")
 
 local M = {}
@@ -29,10 +29,10 @@ function M.yank_with_path()
 	local combined_content = files.compose_buffer_content_with_path(nil, 0, clipboard_config.empty_filepath)
 	fn.setreg("+", combined_content)
 
-	-- Notify the user
-	if clipboard_config.notify ~= false then
-		notify(string.format("Copied %d lines to clipboard with path", api.nvim_buf_line_count(0)), log.levels.INFO)
-	end
+	notifications.notify_if_enabled(
+		clipboard_config,
+		string.format("Copied %d lines to clipboard with path", api.nvim_buf_line_count(0))
+	)
 end
 
 --- Compose an AI-friendly block for a given window
@@ -70,11 +70,9 @@ function M.yank_current_window_ai()
 
 	fn.setreg("+", ai_block)
 
-	if clipboard_config.notify ~= false then
-		local buf = api.nvim_win_get_buf(api.nvim_get_current_win())
-		local line_count = api.nvim_buf_line_count(buf)
-		notify(string.format("Copied %d lines to clipboard", line_count), log.levels.INFO)
-	end
+	local buf = api.nvim_win_get_buf(api.nvim_get_current_win())
+	local line_count = api.nvim_buf_line_count(buf)
+	notifications.notify_if_enabled(clipboard_config, string.format("Copied %d lines to clipboard", line_count))
 end
 
 --- Yank buffer contents and file paths for all open windows in an AI-friendly format
@@ -84,9 +82,7 @@ function M.yank_windows_ai()
 
 	-- Prevent yanking if there are no windows
 	if #editor_windows == 0 then
-		if clipboard_config.notify ~= false then
-			notify("No content windows to yank", log.levels.WARN)
-		end
+		notifications.notify_if_enabled(clipboard_config, "No content windows to yank", log.levels.WARN)
 		return
 	end
 
@@ -109,14 +105,11 @@ function M.yank_windows_ai()
 		api.nvim_set_current_win(original_win)
 	end
 
-	-- Notify the user
 	fn.setreg("+", table.concat(blocks, "\n"))
-	if clipboard_config.notify ~= false then
-		notify(
-			string.format("Copied %d windows with %d total lines to clipboard with paths", #blocks, total_lines),
-			log.levels.INFO
-		)
-	end
+	notifications.notify_if_enabled(
+		clipboard_config,
+		string.format("Copied %d windows with %d total lines to clipboard with paths", #blocks, total_lines)
+	)
 end
 
 --- Yank the filename of the current buffer
@@ -126,13 +119,9 @@ function M.yank_filename()
 
 	if filename and filename ~= "" then
 		fn.setreg("+", filename)
-		if clipboard_config.notify ~= false then
-			notify(string.format("Copied filename %s to clipboard", filename), log.levels.INFO)
-		end
+		notifications.notify_if_enabled(clipboard_config, string.format("Copied filename %s to clipboard", filename))
 	else
-		if clipboard_config.notify ~= false then
-			notify("No filename found", log.levels.ERROR)
-		end
+		notifications.notify_if_enabled(clipboard_config, "No filename found", log.levels.ERROR)
 	end
 end
 

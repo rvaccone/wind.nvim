@@ -3,12 +3,12 @@ local api = vim.api
 local cmd = vim.cmd
 local fn = vim.fn
 local log = vim.log
-local notify = vim.notify
 local o = vim.o
 local tbl_contains = vim.tbl_contains
 
 -- Local modules
 local config = require("wind.config")
+local notifications = require("wind.utils.notifications")
 
 local M = {}
 
@@ -72,9 +72,7 @@ function M.create_window_before_current(split_direction)
 
 	-- Prevent creating a new window if the maximum number of windows has been reached
 	if #editor_windows >= windows_config.max_windows then
-		if windows_config.notify ~= false then
-			notify("Maximum number of windows reached", log.levels.WARN)
-		end
+		notifications.notify_if_enabled(windows_config, "Maximum number of windows reached", log.levels.WARN)
 		return
 	end
 
@@ -92,9 +90,7 @@ function M.create_window_after_current(split_direction)
 
 	-- Prevent creating a new window if the maximum number of windows has been reached
 	if #editor_windows >= windows_config.max_windows then
-		if windows_config.notify ~= false then
-			notify("Maximum number of windows reached", log.levels.WARN)
-		end
+		notifications.notify_if_enabled(windows_config, "Maximum number of windows reached", log.levels.WARN)
 		return
 	end
 
@@ -116,9 +112,7 @@ function M.create_window(split_direction)
 
 	-- Prevent creating a new window if the maximum number of windows has been reached
 	if #editor_windows >= windows_config.max_windows then
-		if windows_config.notify ~= false then
-			notify("Maximum number of windows reached", log.levels.WARN)
-		end
+		notifications.notify_if_enabled(windows_config, "Maximum number of windows reached", log.levels.WARN)
 		return
 	end
 
@@ -170,9 +164,11 @@ function M.operate_on_window(window_number, operation)
 	if actual_index >= 1 and actual_index <= #editor_windows then
 		api.nvim_set_current_win(editor_windows[actual_index])
 
-		local success, result = pcall(cmd, operation)
-		if not success and windows_config.notify ~= false then
-			notify("Error operating on window: " .. result, log.levels.ERROR)
+		local success, result = pcall(function()
+			cmd(operation)
+		end)
+		if not success then
+			notifications.notify_if_enabled(windows_config, "Error operating on window: " .. result, log.levels.ERROR)
 		end
 	end
 end
@@ -188,9 +184,7 @@ function M.swap_window(target_window_number)
 	-- Find the current window's index in the editor windows list
 	local current_window_index = get_current_window_index()
 	if not current_window_index then
-		if windows_config.notify ~= false then
-			notify("Current window is not a valid editor window", log.levels.WARN)
-		end
+		notifications.notify_if_enabled(windows_config, "Current window is not a valid editor window", log.levels.WARN)
 		return
 	end
 
@@ -200,17 +194,17 @@ function M.swap_window(target_window_number)
 
 	-- Check if target window exists
 	if actual_target_index > #editor_windows or actual_target_index < 1 then
-		if windows_config.notify ~= false then
-			notify("Target window " .. target_window_number .. " does not exist", log.levels.WARN)
-		end
+		notifications.notify_if_enabled(
+			windows_config,
+			"Target window " .. target_window_number .. " does not exist",
+			log.levels.WARN
+		)
 		return
 	end
 
 	-- Don't swap if it's the same window
 	if current_window_index == actual_target_index then
-		if windows_config.notify ~= false then
-			notify("Cannot swap window with itself", log.levels.INFO)
-		end
+		notifications.notify_if_enabled(windows_config, "Cannot swap window with itself")
 		return
 	end
 
@@ -235,11 +229,11 @@ function M.swap_window(target_window_number)
 	-- Focus on the target window after swapping
 	api.nvim_set_current_win(target_window)
 
-	if windows_config.notify ~= false then
-		local current_user_index = windows_config.zero_based_indexing and (current_window_index - 1)
-			or current_window_index
-		notify("Swapped window " .. current_user_index .. " with window " .. target_window_number, log.levels.INFO)
-	end
+	local current_user_index = windows_config.zero_based_indexing and (current_window_index - 1) or current_window_index
+	notifications.notify_if_enabled(
+		windows_config,
+		"Swapped window " .. current_user_index .. " with window " .. target_window_number
+	)
 end
 
 --- Toggle maximize current window
