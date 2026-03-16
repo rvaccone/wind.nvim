@@ -27,11 +27,14 @@ end
 function M.yank_with_path()
 	local clipboard_config = M.get_config()
 	local combined_content = files.compose_buffer_content_with_path(nil, 0, clipboard_config.empty_filepath)
+
 	fn.setreg("+", combined_content)
 
+	local line_count = api.nvim_buf_line_count(0)
+	local line_word = line_count == 1 and "line" or "lines"
 	notifications.notify_if_enabled(
 		clipboard_config,
-		string.format("Copied %d lines to clipboard with path", api.nvim_buf_line_count(0))
+		string.format("Copied %d %s to clipboard with path", line_count, line_word)
 	)
 end
 
@@ -72,7 +75,8 @@ function M.yank_current_window_ai()
 
 	local buf = api.nvim_win_get_buf(api.nvim_get_current_win())
 	local line_count = api.nvim_buf_line_count(buf)
-	notifications.notify_if_enabled(clipboard_config, string.format("Copied %d lines to clipboard", line_count))
+	local line_word = line_count == 1 and "line" or "lines"
+	notifications.notify_if_enabled(clipboard_config, string.format("Copied %d %s to clipboard", line_count, line_word))
 end
 
 --- Yank buffer contents and file paths for all open windows in an AI-friendly format
@@ -106,9 +110,18 @@ function M.yank_windows_ai()
 	end
 
 	fn.setreg("+", table.concat(blocks, "\n"))
+
+	local window_word = #blocks == 1 and "window" or "windows"
+	local line_word = total_lines == 1 and "line" or "lines"
 	notifications.notify_if_enabled(
 		clipboard_config,
-		string.format("Copied %d windows with %d total lines to clipboard with paths", #blocks, total_lines)
+		string.format(
+			"Copied %d %s with %d total %s to clipboard with paths",
+			#blocks,
+			window_word,
+			total_lines,
+			line_word
+		)
 	)
 end
 
@@ -119,6 +132,7 @@ function M.yank_filename()
 
 	if filename and filename ~= "" then
 		fn.setreg("+", filename)
+
 		notifications.notify_if_enabled(clipboard_config, string.format("Copied filename %s to clipboard", filename))
 	else
 		notifications.notify_if_enabled(clipboard_config, "No filename found", log.levels.ERROR)
