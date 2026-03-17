@@ -81,7 +81,7 @@ function M.create_window_before_current(split_direction)
 	cmd("enew")
 end
 
---- Creates a window after the current window in the editor window list
+--- Creates a window after the current window
 ---@param split_direction "vsplit"|"split" The split direction to use when creating a new window
 ---@return nil
 function M.create_window_after_current(split_direction)
@@ -101,6 +101,44 @@ function M.create_window_after_current(split_direction)
 		cmd("wincmd j")
 	end
 	cmd("enew")
+end
+
+--- Focuses or creates a window before the current window
+---@param split_direction "vsplit"|"split" The split direction to use when creating a new window
+---@return nil
+function M.focus_or_create_window_before_current(split_direction)
+	local current_win = api.nvim_get_current_win()
+
+	if split_direction == "vsplit" then
+		cmd("wincmd h")
+	else
+		cmd("wincmd k")
+	end
+
+	if api.nvim_get_current_win() ~= current_win then
+		return
+	end
+
+	M.create_window_before_current(split_direction)
+end
+
+--- Focuses or creates a window after the current window
+---@param split_direction "vsplit"|"split" The split direction to use when creating a new window
+---@return nil
+function M.focus_or_create_window_after_current(split_direction)
+	local current_win = api.nvim_get_current_win()
+
+	if split_direction == "vsplit" then
+		cmd("wincmd l")
+	else
+		cmd("wincmd j")
+	end
+
+	if api.nvim_get_current_win() ~= current_win then
+		return
+	end
+
+	M.create_window_after_current(split_direction)
 end
 
 --- Creates a window at the end of the editor window list

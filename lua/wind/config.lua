@@ -17,10 +17,14 @@ local M = {}
 ---@field close_window? string|false Keymap prefix for closing windows
 ---@field close_window_and_swap? string|false Keymap prefix for close-and-swap
 ---@field toggle_maximize? string|false Keymap for toggling maximization on the current window
----@field create_horizontal_window_after_current? string|false Keymap for creating horizontal window after current
----@field create_horizontal_window_before_current? string|false Keymap for creating horizontal window before current
----@field create_vertical_window_after_current? string|false Keymap for creating vertical window after current
----@field create_vertical_window_before_current? string|false Keymap for creating vertical window before current
+---@field focus_or_create_left_window? string|false Keymap for focusing or creating a window to the left of the current window
+---@field focus_or_create_below_window? string|false Keymap for focusing or creating a window below the current window
+---@field focus_or_create_above_window? string|false Keymap for focusing or creating a window above the current window
+---@field focus_or_create_right_window? string|false Keymap for focusing or creating a window to the right of the current window
+---@field create_left_window? string|false Keymap for creating a window to the left of the current window
+---@field create_below_window? string|false Keymap for creating a window below the current window
+---@field create_above_window? string|false Keymap for creating a window above the current window
+---@field create_right_window? string|false Keymap for creating a window to the right of the current window
 
 ---@class WindClipboardAIConfig
 ---@field file_begin_text string Text marker for file start in AI format
@@ -63,10 +67,14 @@ M.defaults = {
 			close_window = "<leader>q", -- Prefix
 			close_window_and_swap = "<leader>z", -- Prefix
 			toggle_maximize = "<leader>wm",
-			create_horizontal_window_after_current = "<leader>wh",
-			create_horizontal_window_before_current = "<leader>wH",
-			create_vertical_window_after_current = "<leader>wv",
-			create_vertical_window_before_current = "<leader>wV",
+			focus_or_create_left_window = "<leader>wh",
+			focus_or_create_below_window = "<leader>wj",
+			focus_or_create_above_window = "<leader>wk",
+			focus_or_create_right_window = "<leader>wl",
+			create_left_window = "<leader>wH",
+			create_below_window = "<leader>wJ",
+			create_above_window = "<leader>wK",
+			create_right_window = "<leader>wL",
 		},
 	},
 

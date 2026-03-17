@@ -79,10 +79,14 @@ Here is the default configuration:
 			close_window = "<leader>q", -- Prefix
 			close_window_and_swap = "<leader>z", -- Prefix
             toggle_maximize = "<leader>wm",
-            create_horizontal_window_after_current = "<leader>wh",
-            create_horizontal_window_before_current = "<leader>wH",
-			create_vertical_window_after_current = "<leader>wv",
-			create_vertical_window_before_current = "<leader>wV",
+			focus_or_create_left_window = "<leader>wh",
+			focus_or_create_below_window = "<leader>wj",
+			focus_or_create_above_window = "<leader>wk",
+			focus_or_create_right_window = "<leader>wl",
+			create_left_window = "<leader>wH",
+			create_below_window = "<leader>wJ",
+			create_above_window = "<leader>wK",
+			create_right_window = "<leader>wL",
 		},
 	},
 
@@ -115,28 +119,35 @@ Use `:h wind` for more information about each configuration option. However, her
 
 ## Default Keymaps
 
-By default, the plugin creates indexed keymaps (1-9) for most window operations:
+### Window
 
-| Window keymaps              | Description                             |
-| --------------------------- | --------------------------------------- |
-| `<leader>1` - `<leader>9`   | Focus or create horizontal window 1-9   |
-| `<leader>wh`                | Create horizontal window after current  |
-| `<leader>wH`                | Create horizontal window before current |
-| `<leader>v1` - `<leader>v9` | Focus or create vertical window 1-9     |
-| `<leader>wv`                | Create vertical window after current    |
-| `<leader>wV`                | Create vertical window before current   |
-| `<leader>x1` - `<leader>x9` | Swap current window with window 1-9     |
-| `<leader>q1` - `<leader>q9` | Close window 1-9 without saving         |
-| `<leader>z1` - `<leader>z9` | Close window 1-9 with saving            |
-| `<leader>wm`                | Toggle maximize current window          |
+| Keymap                      | Description                                        |
+| --------------------------- | -------------------------------------------------- |
+| `<leader>1` - `<leader>9`   | Focus or create horizontal window 1-9              |
+| `<leader>v1` - `<leader>v9` | Focus or create vertical window 1-9                |
+| `<leader>x1` - `<leader>x9` | Swap current window with window 1-9                |
+| `<leader>q1` - `<leader>q9` | Close window 1-9 without saving                    |
+| `<leader>z1` - `<leader>z9` | Close window 1-9 with saving                       |
+| `<leader>wm`                | Toggle maximize current window                     |
+| `<leader>wh`                | Focus or create window to the left of the current  |
+| `<leader>wj`                | Focus or create window below the current           |
+| `<leader>wk`                | Focus or create window above the current           |
+| `<leader>wl`                | Focus or create window to the right of the current |
+| `<leader>wH`                | Create window to the left of the current           |
+| `<leader>wJ`                | Create window below the current                    |
+| `<leader>wK`                | Create window above the current                    |
+| `<leader>wL`                | Create window to the right of the current          |
 
-Clipboard keymaps:
+> [!NOTE]
+> By default, the plugin creates indexed keymaps (1-9) for many window operations
 
-| Clipboard keymaps | Description                      |
-| ----------------- | -------------------------------- |
-| `<leader>ya`      | Yank current window with path    |
-| `<leader>y#`      | Yank current window in AI format |
-| `<leader>y*`      | Yank all windows in AI format    |
-| `<leader>yn`      | Yank current filename            |
+### Clipboard
+
+| Keymap       | Description                      |
+| ------------ | -------------------------------- |
+| `<leader>ya` | Yank current window with path    |
+| `<leader>y#` | Yank current window in AI format |
+| `<leader>y*` | Yank all windows in AI format    |
+| `<leader>yn` | Yank current filename            |
 
 All keymaps work in normal and visual modes.
