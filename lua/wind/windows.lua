@@ -107,6 +107,7 @@ end
 ---@param split_direction "vsplit"|"split" The split direction to use when creating a new window
 ---@return nil
 function M.focus_or_create_window_before_current(split_direction)
+	local windows_config = M.get_config()
 	local current_win = api.nvim_get_current_win()
 
 	if split_direction == "vsplit" then
@@ -115,8 +116,17 @@ function M.focus_or_create_window_before_current(split_direction)
 		cmd("wincmd k")
 	end
 
+	-- Check if we moved and the new window is valid
 	if api.nvim_get_current_win() ~= current_win then
-		return
+		local new_buf = api.nvim_win_get_buf(api.nvim_get_current_win())
+		local filetype = api.nvim_get_option_value("filetype", { buf = new_buf })
+
+		-- If the new window is excluded, focus on the original window
+		if not tbl_contains(windows_config.excluded_filetypes, filetype) then
+			return
+		end
+
+		api.nvim_set_current_win(current_win)
 	end
 
 	M.create_window_before_current(split_direction)
@@ -126,6 +136,7 @@ end
 ---@param split_direction "vsplit"|"split" The split direction to use when creating a new window
 ---@return nil
 function M.focus_or_create_window_after_current(split_direction)
+	local windows_config = M.get_config()
 	local current_win = api.nvim_get_current_win()
 
 	if split_direction == "vsplit" then
@@ -134,8 +145,17 @@ function M.focus_or_create_window_after_current(split_direction)
 		cmd("wincmd j")
 	end
 
+	-- Check if we moved and the new window is valid
 	if api.nvim_get_current_win() ~= current_win then
-		return
+		local new_buf = api.nvim_win_get_buf(api.nvim_get_current_win())
+		local filetype = api.nvim_get_option_value("filetype", { buf = new_buf })
+
+		-- If the new window is excluded, focus on the original window
+		if not tbl_contains(windows_config.excluded_filetypes, filetype) then
+			return
+		end
+
+		api.nvim_set_current_win(current_win)
 	end
 
 	M.create_window_after_current(split_direction)

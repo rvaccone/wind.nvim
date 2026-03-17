@@ -1,8 +1,6 @@
--- Localized vim variables
-local keymap = vim.keymap
-
 -- Local modules
 local clipboard = require("wind.clipboard")
+local keymaps = require("wind.utils.keymaps")
 
 local M = {}
 
@@ -11,38 +9,46 @@ local M = {}
 ---@return nil
 function M.setup(clipboard_config)
 	-- Check if keymaps are enabled
-	local keymaps = clipboard_config.keymaps
-	if keymaps == false then
+	local keymaps_config = clipboard_config.keymaps
+	if keymaps_config == false then
 		return
 	end
 
 	-- Yank current window
-	if keymaps ~= nil and keymaps.yank_current_window then
-		keymap.set({ "n", "v" }, keymaps.yank_current_window, function()
+	keymaps.register(keymaps_config, {
+		key = "yank_current_window",
+		func = function()
 			clipboard.yank_with_path()
-		end, { desc = "Yank current window with path", noremap = true, silent = true })
-	end
+		end,
+		desc = "Yank current window with path",
+	})
 
 	-- Yank current window in AI format
-	if keymaps ~= nil and keymaps.yank_current_window_ai then
-		keymap.set({ "n", "v" }, keymaps.yank_current_window_ai, function()
+	keymaps.register(keymaps_config, {
+		key = "yank_current_window_ai",
+		func = function()
 			clipboard.yank_current_window_ai()
-		end, { desc = "Yank current window in AI format", noremap = true, silent = true })
-	end
+		end,
+		desc = "Yank current window in AI format",
+	})
 
 	-- Yank windows in AI format
-	if keymaps ~= nil and keymaps.yank_windows_ai then
-		keymap.set({ "n", "v" }, keymaps.yank_windows_ai, function()
+	keymaps.register(keymaps_config, {
+		key = "yank_windows_ai",
+		func = function()
 			clipboard.yank_windows_ai()
-		end, { desc = "Yank windows in AI format", noremap = true, silent = true })
-	end
+		end,
+		desc = "Yank windows in AI format",
+	})
 
 	-- Yank filename
-	if keymaps ~= nil and keymaps.yank_filename then
-		keymap.set({ "n", "v" }, keymaps.yank_filename, function()
+	keymaps.register(keymaps_config, {
+		key = "yank_filename",
+		func = function()
 			clipboard.yank_filename()
-		end, { desc = "Yank filename", noremap = true, silent = true })
-	end
+		end,
+		desc = "Yank filename",
+	})
 end
 
 return M

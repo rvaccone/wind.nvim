@@ -1,7 +1,5 @@
--- Localized vim variables
-local keymap = vim.keymap
-
 -- Local modules
+local keymaps = require("wind.utils.keymaps")
 local windows = require("wind.windows")
 
 local M = {}
@@ -11,8 +9,8 @@ local M = {}
 ---@return nil
 function M.setup(windows_config)
 	-- Check if keymaps are enabled
-	local keymaps = windows_config.keymaps
-	if keymaps == false then
+	local keymaps_config = windows_config.keymaps
+	if keymaps_config == false then
 		return
 	end
 
@@ -24,97 +22,125 @@ function M.setup(windows_config)
 	-- Create the dynamic keymaps
 	for i = start_index, max_index do
 		-- Focus or create horizontal window
-		if keymaps ~= nil and keymaps.focus_or_create_horizontal_window then
-			keymap.set({ "n", "v" }, keymaps.focus_or_create_horizontal_window .. i, function()
+		keymaps.register_dynamic(keymaps_config, {
+			key = "focus_or_create_horizontal_window",
+			func = function()
 				windows.focus_or_create_window(i, "vsplit")
-			end, { desc = "Focus or create horizontal window " .. i, noremap = true, silent = true })
-		end
+			end,
+			desc = "Focus or create horizontal window " .. i,
+		}, i)
 
 		-- Focus or create vertical window
-		if keymaps ~= nil and keymaps.focus_or_create_vertical_window then
-			keymap.set({ "n", "v" }, keymaps.focus_or_create_vertical_window .. i, function()
+		keymaps.register_dynamic(keymaps_config, {
+			key = "focus_or_create_vertical_window",
+			func = function()
 				windows.focus_or_create_window(i, "split")
-			end, { desc = "Focus or create vertical window " .. i, noremap = true, silent = true })
-		end
+			end,
+			desc = "Focus or create vertical window " .. i,
+		}, i)
 
 		-- Swap window
-		if keymaps ~= nil and keymaps.swap_window then
-			keymap.set({ "n", "v" }, keymaps.swap_window .. i, function()
+		keymaps.register_dynamic(keymaps_config, {
+			key = "swap_window",
+			func = function()
 				windows.swap_window(i)
-			end, { desc = "Swap current window with window " .. i, noremap = true, silent = true })
-		end
+			end,
+			desc = "Swap current window with window " .. i,
+		}, i)
 
 		-- Close window
-		if keymaps ~= nil and keymaps.close_window then
-			keymap.set({ "n", "v" }, keymaps.close_window .. i, function()
+		keymaps.register_dynamic(keymaps_config, {
+			key = "close_window",
+			func = function()
 				windows.operate_on_window(i, "q!")
-			end, { desc = "Close window " .. i, noremap = true, silent = true })
-		end
+			end,
+			desc = "Close window " .. i,
+		}, i)
 
 		-- Close window and swap
-		if keymaps ~= nil and keymaps.close_window_and_swap then
-			keymap.set({ "n", "v" }, keymaps.close_window_and_swap .. i, function()
+		keymaps.register_dynamic(keymaps_config, {
+			key = "close_window_and_swap",
+			func = function()
 				windows.operate_on_window(i, "wq!")
-			end, { desc = "Close window " .. i .. " and swap", noremap = true, silent = true })
-		end
+			end,
+			desc = "Close window " .. i .. " and swap",
+		}, i)
 	end
 
 	-- Toggle maximize
-	if keymaps ~= nil and keymaps.toggle_maximize then
-		keymap.set({ "n", "v" }, keymaps.toggle_maximize, function()
+	keymaps.register(keymaps_config, {
+		key = "toggle_maximize",
+		func = function()
 			windows.toggle_maximize()
-		end, { desc = "Toggle maximize", noremap = true, silent = true })
-	end
+		end,
+		desc = "Toggle maximize",
+	})
 
 	-- Focus or create directional window
-	if keymaps ~= nil and keymaps.focus_or_create_left_window then
-		keymap.set({ "n", "v" }, keymaps.focus_or_create_left_window, function()
+	keymaps.register(keymaps_config, {
+		key = "focus_or_create_left_window",
+		func = function()
 			windows.focus_or_create_window_before_current("vsplit")
-		end, { desc = "Focus or create window to the left of the current", noremap = true, silent = true })
-	end
+		end,
+		desc = "Focus or create window to the left of the current",
+	})
 
-	if keymaps ~= nil and keymaps.focus_or_create_below_window then
-		keymap.set({ "n", "v" }, keymaps.focus_or_create_below_window, function()
+	keymaps.register(keymaps_config, {
+		key = "focus_or_create_below_window",
+		func = function()
 			windows.focus_or_create_window_after_current("split")
-		end, { desc = "Focus or create window below the current", noremap = true, silent = true })
-	end
+		end,
+		desc = "Focus or create window below the current",
+	})
 
-	if keymaps ~= nil and keymaps.focus_or_create_above_window then
-		keymap.set({ "n", "v" }, keymaps.focus_or_create_above_window, function()
+	keymaps.register(keymaps_config, {
+		key = "focus_or_create_above_window",
+		func = function()
 			windows.focus_or_create_window_before_current("split")
-		end, { desc = "Focus or create window above the current", noremap = true, silent = true })
-	end
+		end,
+		desc = "Focus or create window above the current",
+	})
 
-	if keymaps ~= nil and keymaps.focus_or_create_right_window then
-		keymap.set({ "n", "v" }, keymaps.focus_or_create_right_window, function()
+	keymaps.register(keymaps_config, {
+		key = "focus_or_create_right_window",
+		func = function()
 			windows.focus_or_create_window_after_current("vsplit")
-		end, { desc = "Focus or create window to the right of the current", noremap = true, silent = true })
-	end
+		end,
+		desc = "Focus or create window to the right of the current",
+	})
 
 	-- Create directional window
-	if keymaps ~= nil and keymaps.create_left_window then
-		keymap.set({ "n", "v" }, keymaps.create_left_window, function()
+	keymaps.register(keymaps_config, {
+		key = "create_left_window",
+		func = function()
 			windows.create_window_before_current("vsplit")
-		end, { desc = "Create window to the left of the current", noremap = true, silent = true })
-	end
+		end,
+		desc = "Create window to the left of the current",
+	})
 
-	if keymaps ~= nil and keymaps.create_below_window then
-		keymap.set({ "n", "v" }, keymaps.create_below_window, function()
+	keymaps.register(keymaps_config, {
+		key = "create_below_window",
+		func = function()
 			windows.create_window_after_current("split")
-		end, { desc = "Create window below the current", noremap = true, silent = true })
-	end
+		end,
+		desc = "Create window below the current",
+	})
 
-	if keymaps ~= nil and keymaps.create_above_window then
-		keymap.set({ "n", "v" }, keymaps.create_above_window, function()
+	keymaps.register(keymaps_config, {
+		key = "create_above_window",
+		func = function()
 			windows.create_window_before_current("split")
-		end, { desc = "Create window above the current", noremap = true, silent = true })
-	end
+		end,
+		desc = "Create window above the current",
+	})
 
-	if keymaps ~= nil and keymaps.create_right_window then
-		keymap.set({ "n", "v" }, keymaps.create_right_window, function()
+	keymaps.register(keymaps_config, {
+		key = "create_right_window",
+		func = function()
 			windows.create_window_after_current("vsplit")
-		end, { desc = "Create window to the right of the current", noremap = true, silent = true })
-	end
+		end,
+		desc = "Create window to the right of the current",
+	})
 end
 
 return M
