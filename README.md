@@ -68,7 +68,7 @@ Here is the default configuration:
 ```lua
 {
 	windows = {
-        excluded_bufnames = { "opencode" },
+        excluded_bufnames = {},
 		excluded_filetypes = { "help", "neo-tree", "notify" },
 		max_windows = 9,
 		zero_based_indexing = false,
