@@ -4,6 +4,7 @@ local tbl_deep_extend = vim.tbl_deep_extend
 local M = {}
 
 ---@class WindWindowsConfig
+---@field excluded_bufnames string[] Lua patterns to match buffer names that should be excluded from window indexing
 ---@field excluded_filetypes string[] Filetypes to exclude from window indexing
 ---@field max_windows integer Maximum number of windows to index
 ---@field zero_based_indexing boolean Use 0-based indexing instead of 1-based
@@ -56,6 +57,7 @@ local M = {}
 ---@type WindConfig
 M.defaults = {
 	windows = {
+		excluded_bufnames = {},
 		excluded_filetypes = { "help", "neo-tree", "notify" },
 		max_windows = 9,
 		zero_based_indexing = false,
