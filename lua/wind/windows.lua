@@ -25,6 +25,18 @@ function M.get_config()
 	return M._windows_config or config.get_section("windows")
 end
 
+--- Check if a buffer name matches any excluded pattern
+---@param bufname string The buffer name to check
+---@return boolean
+local function matches_excluded_bufname(bufname)
+	for _, pattern in ipairs(M.get_config().excluded_bufnames or {}) do
+		if bufname:match(pattern) then
+			return true
+		end
+	end
+	return false
+end
+
 --- Returns a list of all editor windows
 ---@return table
 function M.list_content_windows()
@@ -35,11 +47,14 @@ function M.list_content_windows()
 
 	for _, window in ipairs(windows) do
 		local buf = api.nvim_win_get_buf(window)
+		local bufname = api.nvim_buf_get_name(buf)
 
 		if buf and buf > 0 then
 			local filetype = api.nvim_get_option_value("filetype", { buf = buf })
 
-			if not tbl_contains(windows_config.excluded_filetypes, filetype) then
+			if
+				not tbl_contains(windows_config.excluded_filetypes, filetype) and not matches_excluded_bufname(bufname)
+			then
 				table.insert(editor_windows, window)
 			end
 		end
@@ -120,9 +135,10 @@ function M.focus_or_create_window_before_current(split_direction)
 	if api.nvim_get_current_win() ~= current_win then
 		local new_buf = api.nvim_win_get_buf(api.nvim_get_current_win())
 		local filetype = api.nvim_get_option_value("filetype", { buf = new_buf })
+		local bufname = api.nvim_buf_get_name(new_buf)
 
 		-- If the new window is excluded, focus on the original window
-		if not tbl_contains(windows_config.excluded_filetypes, filetype) then
+		if not tbl_contains(windows_config.excluded_filetypes, filetype) and not matches_excluded_bufname(bufname) then
 			return
 		end
 
@@ -149,9 +165,10 @@ function M.focus_or_create_window_after_current(split_direction)
 	if api.nvim_get_current_win() ~= current_win then
 		local new_buf = api.nvim_win_get_buf(api.nvim_get_current_win())
 		local filetype = api.nvim_get_option_value("filetype", { buf = new_buf })
+		local bufname = api.nvim_buf_get_name(new_buf)
 
 		-- If the new window is excluded, focus on the original window
-		if not tbl_contains(windows_config.excluded_filetypes, filetype) then
+		if not tbl_contains(windows_config.excluded_filetypes, filetype) and not matches_excluded_bufname(bufname) then
 			return
 		end
 

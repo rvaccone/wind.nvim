@@ -65,6 +65,7 @@ Here is the default configuration:
 >
 {
 	windows = {
+        excluded_bufnames = {},
 		excluded_filetypes = { "help", "neo-tree", "notify" },
 		max_windows = 9,
 		zero_based_indexing = false,
@@ -180,9 +181,17 @@ WINDOWS CONFIGURATION *wind-windows-configuration*
 Now that you know how the plugin indexes your windows, let's talk about
 configuration options for the plugin.
 
+`windows.excluded_bufnames` *wind-config-windows-excluded_bufnames*
+	type: string[]
+	default: {}
+
+	Lua patterns to match buffer names that should be excluded from window
+	indexing. For example, {"opencode"} will match any buffer name containing
+	"opencode" (e.g., "12345:opencode -- port").
+
 `windows.excluded_filetypes` *wind-config-windows-excluded_filetypes*
 	type: string[]
-	default: {"help", "neo-tree"}
+	default: {"help", "neo-tree", "notify"}
 
 	Filetypes that should be excluded from window indexing. Windows with these
 	filetypes will not be included in the indexing process.
