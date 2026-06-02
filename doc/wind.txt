@@ -65,7 +65,7 @@ Here is the default configuration:
 >
 {
 	windows = {
-        excluded_bufnames = {},
+		excluded_bufnames = {},
 		excluded_filetypes = { "help", "neo-tree", "notify" },
 		max_windows = 9,
 		zero_based_indexing = false,
@@ -75,7 +75,7 @@ Here is the default configuration:
 			focus_or_create_vertical_window = "<leader>v", -- Prefix
 			swap_window = "<leader>x", -- Prefix
 			close_window = "<leader>q", -- Prefix
-			close_window_and_swap = "<leader>z", -- Prefix
+			close_window_with_save = "<leader>z", -- Prefix
 			toggle_maximize = "<leader>wm",
 			focus_or_create_left_window = "<leader>wh",
 			focus_or_create_below_window = "<leader>wj",
@@ -95,7 +95,7 @@ Here is the default configuration:
 			file_begin_text = "=== FILE BEGIN ===",
 			content_begin_text = "--- CONTENT ---",
 			file_end_text = "=== FILE END ===",
-			separator = "\n",
+			line_separator = "\n",
 			include_filetype = true,
 			include_line_count = true,
 			include_path = true,
@@ -239,11 +239,11 @@ configuration options for the plugin.
 
 		Keymap prefix for closing target window. Set to `false` to disable this keymap.
 
-	`close_window_and_swap` *wind-config-windows-keymaps-close_window_and_swap*
+	`close_window_with_save` *wind-config-windows-keymaps-close_window_with_save*
 		type: string|boolean
 		default: "<leader>z"
 
-		Keymap prefix for closing target window and swapping with next window.
+		Keymap prefix for closing target window with save.
 		Set to `false` to disable this keymap.
 
 	`toggle_maximize` *wind-config-windows-keymaps-toggle_maximize*
@@ -370,11 +370,11 @@ Clipboard configuration options are straightforward.
 
 		Text to use at the end of the clipboard file.
 
-	`separator` *wind-config-clipboard-ai-separator*
+	`line_separator` *wind-config-clipboard-ai-line_separator*
 		type: string
 		default: "\n"
 
-		Separator to use between multiple files.
+		Line separator to use in AI-formatted output.
 
 	`include_filetype` *wind-config-clipboard-ai-include_filetype*
 		type: boolean
