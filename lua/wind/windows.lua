@@ -27,9 +27,10 @@ end
 
 --- Check if a buffer name matches any excluded pattern
 ---@param bufname string The buffer name to check
+---@param windows_config WindWindowsConfig
 ---@return boolean
-local function matches_excluded_bufname(bufname)
-	for _, pattern in ipairs(M.get_config().excluded_bufnames or {}) do
+local function matches_excluded_bufname(bufname, windows_config)
+	for _, pattern in ipairs(windows_config.excluded_bufnames or {}) do
 		if bufname:match(pattern) then
 			return true
 		end
@@ -37,28 +38,51 @@ local function matches_excluded_bufname(bufname)
 	return false
 end
 
+--- Check if a window should be included in Wind's content index.
+---@param window integer
+---@param windows_config WindWindowsConfig
+---@return boolean
+local function is_content_window(window, windows_config)
+	if not api.nvim_win_is_valid(window) then
+		return false
+	end
+
+	if api.nvim_win_get_config(window).relative ~= "" then
+		return false
+	end
+
+	local buf = api.nvim_win_get_buf(window)
+	local bufname = api.nvim_buf_get_name(buf)
+	local filetype = api.nvim_get_option_value("filetype", { buf = buf })
+
+	return not tbl_contains(windows_config.excluded_filetypes or {}, filetype)
+		and not matches_excluded_bufname(bufname, windows_config)
+end
+
 --- Returns a list of all editor windows
 ---@return table
 function M.list_content_windows()
 	local windows_config = M.get_config()
 
-	local windows = api.nvim_list_wins()
+	local windows = api.nvim_tabpage_list_wins(0)
 	local editor_windows = {}
 
 	for _, window in ipairs(windows) do
-		local buf = api.nvim_win_get_buf(window)
-		local bufname = api.nvim_buf_get_name(buf)
-
-		if buf and buf > 0 then
-			local filetype = api.nvim_get_option_value("filetype", { buf = buf })
-
-			if
-				not tbl_contains(windows_config.excluded_filetypes, filetype) and not matches_excluded_bufname(bufname)
-			then
-				table.insert(editor_windows, window)
-			end
+		if is_content_window(window, windows_config) then
+			table.insert(editor_windows, window)
 		end
 	end
+
+	table.sort(editor_windows, function(left, right)
+		local left_position = fn.win_screenpos(left)
+		local right_position = fn.win_screenpos(right)
+
+		if left_position[1] == right_position[1] then
+			return left_position[2] < right_position[2]
+		end
+
+		return left_position[1] < right_position[1]
+	end)
 
 	return editor_windows
 end
@@ -133,12 +157,8 @@ function M.focus_or_create_window_before_current(split_direction)
 
 	-- Check if we moved and the new window is valid
 	if api.nvim_get_current_win() ~= current_win then
-		local new_buf = api.nvim_win_get_buf(api.nvim_get_current_win())
-		local filetype = api.nvim_get_option_value("filetype", { buf = new_buf })
-		local bufname = api.nvim_buf_get_name(new_buf)
-
 		-- If the new window is excluded, focus on the original window
-		if not tbl_contains(windows_config.excluded_filetypes, filetype) and not matches_excluded_bufname(bufname) then
+		if is_content_window(api.nvim_get_current_win(), windows_config) then
 			return
 		end
 
@@ -163,12 +183,8 @@ function M.focus_or_create_window_after_current(split_direction)
 
 	-- Check if we moved and the new window is valid
 	if api.nvim_get_current_win() ~= current_win then
-		local new_buf = api.nvim_win_get_buf(api.nvim_get_current_win())
-		local filetype = api.nvim_get_option_value("filetype", { buf = new_buf })
-		local bufname = api.nvim_buf_get_name(new_buf)
-
 		-- If the new window is excluded, focus on the original window
-		if not tbl_contains(windows_config.excluded_filetypes, filetype) and not matches_excluded_bufname(bufname) then
+		if is_content_window(api.nvim_get_current_win(), windows_config) then
 			return
 		end
 
@@ -314,18 +330,50 @@ end
 --- Toggle maximize current window
 function M.toggle_maximize()
 	if M._maximize_state then
-		cmd("tabclose")
-		o.showtabline = M._maximize_state.showtabline
+		local maximize_state = M._maximize_state
+
+		o.showtabline = maximize_state.showtabline
+
+		if maximize_state.maximized_tab and api.nvim_tabpage_is_valid(maximize_state.maximized_tab) then
+			api.nvim_set_current_tabpage(maximize_state.maximized_tab)
+
+			local success, result = pcall(cmd, "tabclose")
+			if not success then
+				notifications.notify_if_enabled(
+					M.get_config(),
+					"Error restoring maximized window: " .. result,
+					log.levels.ERROR
+				)
+				return
+			end
+		end
+
 		M._maximize_state = nil
+
+		if maximize_state.source_tab and api.nvim_tabpage_is_valid(maximize_state.source_tab) then
+			api.nvim_set_current_tabpage(maximize_state.source_tab)
+		end
+
+		if maximize_state.source_win and api.nvim_win_is_valid(maximize_state.source_win) then
+			pcall(api.nvim_set_current_win, maximize_state.source_win)
+		end
 	else
 		-- Save state and maximize
-		M._maximize_state = {
+		local maximize_state = {
 			showtabline = o.showtabline,
-			tab = fn.tabpagenr(),
-			win = api.nvim_get_current_win(),
+			source_tab = api.nvim_get_current_tabpage(),
+			source_win = api.nvim_get_current_win(),
 		}
 		o.showtabline = 0
-		cmd("tab split")
+		local success, result = pcall(cmd, "tab split")
+		if not success then
+			o.showtabline = maximize_state.showtabline
+			notifications.notify_if_enabled(M.get_config(), "Error maximizing window: " .. result, log.levels.ERROR)
+			return
+		end
+
+		maximize_state.maximized_tab = api.nvim_get_current_tabpage()
+		M._maximize_state = maximize_state
 	end
 end
 

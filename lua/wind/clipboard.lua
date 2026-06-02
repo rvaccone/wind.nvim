@@ -54,15 +54,29 @@ local function compose_block_for_window(win, cwd)
 	local filetype = api.nvim_get_option_value("filetype", { buf = buf }) or ""
 
 	-- Compose the block
-	return table.concat({
-		clipboard_config.ai.file_begin_text,
-		clipboard_config.ai.include_path and ("Path: " .. relpath) or "",
-		clipboard_config.ai.include_filetype and ("Filetype: " .. filetype) or "",
-		clipboard_config.ai.include_line_count and ("Lines: " .. tostring(#lines_tbl)) or "",
-		clipboard_config.ai.content_begin_text,
-		table.concat(lines_tbl, "\n"),
-		clipboard_config.ai.file_end_text,
-	}, clipboard_config.ai.separator)
+	local block = { clipboard_config.ai.file_begin_text }
+
+	if clipboard_config.ai.include_path then
+		table.insert(block, "Path: " .. relpath)
+	end
+
+	if clipboard_config.ai.include_filetype then
+		table.insert(block, "Filetype: " .. filetype)
+	end
+
+	if clipboard_config.ai.include_line_count then
+		table.insert(block, "Lines: " .. tostring(#lines_tbl))
+	end
+
+	table.insert(block, clipboard_config.ai.content_begin_text)
+
+	for _, line in ipairs(lines_tbl) do
+		table.insert(block, line)
+	end
+
+	table.insert(block, clipboard_config.ai.file_end_text)
+
+	return table.concat(block, clipboard_config.ai.line_separator)
 end
 
 --- Yank current window in AI-friendly format
@@ -109,7 +123,7 @@ function M.yank_windows_ai()
 		api.nvim_set_current_win(original_win)
 	end
 
-	fn.setreg("+", table.concat(blocks, "\n"))
+	fn.setreg("+", table.concat(blocks, clipboard_config.ai.line_separator))
 
 	local window_word = #blocks == 1 and "window" or "windows"
 	local line_word = total_lines == 1 and "line" or "lines"

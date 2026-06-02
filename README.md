@@ -68,7 +68,7 @@ Here is the default configuration:
 ```lua
 {
 	windows = {
-        excluded_bufnames = {},
+		excluded_bufnames = {},
 		excluded_filetypes = { "help", "neo-tree", "notify" },
 		max_windows = 9,
 		zero_based_indexing = false,
@@ -78,8 +78,8 @@ Here is the default configuration:
 			focus_or_create_vertical_window = "<leader>v", -- Prefix
 			swap_window = "<leader>x", -- Prefix
 			close_window = "<leader>q", -- Prefix
-			close_window_and_swap = "<leader>z", -- Prefix
-            toggle_maximize = "<leader>wm",
+			close_window_with_save = "<leader>z", -- Prefix
+			toggle_maximize = "<leader>wm",
 			focus_or_create_left_window = "<leader>wh",
 			focus_or_create_below_window = "<leader>wj",
 			focus_or_create_above_window = "<leader>wk",
@@ -98,7 +98,7 @@ Here is the default configuration:
 			file_begin_text = "=== FILE BEGIN ===",
 			content_begin_text = "--- CONTENT ---",
 			file_end_text = "=== FILE END ===",
-			separator = "\n",
+			line_separator = "\n",
 			include_filetype = true,
 			include_line_count = true,
 			include_path = true,
@@ -128,7 +128,7 @@ Use `:h wind` for more information about each configuration option. However, her
 | `<leader>v1` - `<leader>v9` | Focus or create vertical window 1-9                |
 | `<leader>x1` - `<leader>x9` | Swap current window with window 1-9                |
 | `<leader>q1` - `<leader>q9` | Close window 1-9 without saving                    |
-| `<leader>z1` - `<leader>z9` | Close window 1-9 with saving                       |
+| `<leader>z1` - `<leader>z9` | Close window 1-9 with save                         |
 | `<leader>wm`                | Toggle maximize current window                     |
 | `<leader>wh`                | Focus or create window to the left of the current  |
 | `<leader>wj`                | Focus or create window below the current           |

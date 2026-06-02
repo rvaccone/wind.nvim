@@ -57,13 +57,13 @@ function M.setup(windows_config)
 			desc = "Close window " .. i,
 		}, i)
 
-		-- Close window and swap
+		-- Close window with save
 		keymaps.register_dynamic(keymaps_config, {
-			key = "close_window_and_swap",
+			key = "close_window_with_save",
 			func = function()
 				windows.operate_on_window(i, "wq!")
 			end,
-			desc = "Close window " .. i .. " and swap",
+			desc = "Close window " .. i .. " with save",
 		}, i)
 	end
 

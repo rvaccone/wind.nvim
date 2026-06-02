@@ -1,4 +1,5 @@
 -- Localized vim variables
+local deepcopy = vim.deepcopy
 local tbl_deep_extend = vim.tbl_deep_extend
 
 local M = {}
@@ -16,7 +17,8 @@ local M = {}
 ---@field focus_or_create_vertical_window? string|false Keymap prefix for vertical windows
 ---@field swap_window? string|false Keymap prefix for swapping windows
 ---@field close_window? string|false Keymap prefix for closing windows
----@field close_window_and_swap? string|false Keymap prefix for close-and-swap
+---@field close_window_with_save? string|false Keymap prefix for closing windows with save
+---@field close_window_and_swap? string|false Deprecated alias for close_window_with_save
 ---@field toggle_maximize? string|false Keymap for toggling maximization on the current window
 ---@field focus_or_create_left_window? string|false Keymap for focusing or creating a window to the left of the current window
 ---@field focus_or_create_below_window? string|false Keymap for focusing or creating a window below the current window
@@ -31,7 +33,8 @@ local M = {}
 ---@field file_begin_text string Text marker for file start in AI format
 ---@field content_begin_text string Text marker for content start in AI format
 ---@field file_end_text string Text marker for file end in AI format
----@field separator string Separator between files in AI format
+---@field line_separator string Line separator in AI format
+---@field separator? string Deprecated alias for line_separator
 ---@field include_path boolean Include file path in AI format
 ---@field include_filetype boolean Include file type in AI format
 ---@field include_line_count boolean Include line count in AI format
@@ -67,7 +70,7 @@ M.defaults = {
 			focus_or_create_vertical_window = "<leader>v", -- Prefix
 			swap_window = "<leader>x", -- Prefix
 			close_window = "<leader>q", -- Prefix
-			close_window_and_swap = "<leader>z", -- Prefix
+			close_window_with_save = "<leader>z", -- Prefix
 			toggle_maximize = "<leader>wm",
 			focus_or_create_left_window = "<leader>wh",
 			focus_or_create_below_window = "<leader>wj",
@@ -87,7 +90,7 @@ M.defaults = {
 			file_begin_text = "=== FILE BEGIN ===",
 			content_begin_text = "--- CONTENT ---",
 			file_end_text = "=== FILE END ===",
-			separator = "\n",
+			line_separator = "\n",
 			include_filetype = true,
 			include_line_count = true,
 			include_path = true,
@@ -104,9 +107,42 @@ M.defaults = {
 -- Merged configuration table
 M._config = nil
 
+--- Normalize deprecated configuration options before merging.
+---@param opts WindConfig|nil
+---@return WindConfig|nil
+local function normalize_opts(opts)
+	if not opts then
+		return opts
+	end
+
+	local normalized = nil
+
+	if
+		opts.windows
+		and opts.windows.keymaps
+		and opts.windows.keymaps.close_window_and_swap ~= nil
+		and opts.windows.keymaps.close_window_with_save == nil
+	then
+		normalized = normalized or deepcopy(opts)
+		normalized.windows.keymaps.close_window_with_save = normalized.windows.keymaps.close_window_and_swap
+	end
+
+	if
+		opts.clipboard
+		and opts.clipboard.ai
+		and opts.clipboard.ai.separator ~= nil
+		and opts.clipboard.ai.line_separator == nil
+	then
+		normalized = normalized or deepcopy(opts)
+		normalized.clipboard.ai.line_separator = normalized.clipboard.ai.separator
+	end
+
+	return normalized or opts
+end
+
 --- Setup function to receive the merged config
 function M.setup(opts)
-	M._config = tbl_deep_extend("force", M.defaults, opts or {})
+	M._config = tbl_deep_extend("force", M.defaults, normalize_opts(opts) or {})
 end
 
 --- Get the current configuration
