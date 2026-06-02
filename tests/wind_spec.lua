@@ -112,6 +112,54 @@ test("content windows exclude floating windows", function()
 	assert_eq(1, #require("wind.windows").list_content_windows(), "floating window should not be indexed")
 end)
 
+test("excluded filetypes and bufnames are skipped when indexing", function()
+	reset({ windows = { excluded_bufnames = { "opencode" } } })
+
+	local windows = require("wind.windows")
+
+	windows.create_window("vsplit")
+	vim.bo.filetype = "help"
+
+	windows.create_window("vsplit")
+	api.nvim_buf_set_name(0, "term://wind-opencode-test")
+
+	assert_eq(1, #windows.list_content_windows(), "only the non-excluded window should be indexed")
+
+	windows.focus_or_create_window(2, "vsplit")
+
+	assert_eq(2, #windows.list_content_windows(), "focus/create should create after the last indexed window")
+end)
+
+test("directional focus/create skips excluded neighboring windows", function()
+	reset()
+
+	local windows = require("wind.windows")
+	local source_win = api.nvim_get_current_win()
+
+	windows.create_window_before_current("vsplit")
+	local excluded_win = api.nvim_get_current_win()
+	vim.bo.filetype = "help"
+
+	api.nvim_set_current_win(source_win)
+	windows.focus_or_create_window_after_current("vsplit")
+
+	assert_eq(2, #windows.list_content_windows(), "a new indexed window should be created past the excluded neighbor")
+	assert_true(api.nvim_get_current_win() ~= excluded_win, "excluded neighbor should not be focused")
+	assert_eq("", vim.bo.filetype, "newly created window should be a normal content window")
+end)
+
+test("max_windows still prevents creating extra indexed windows", function()
+	reset({ windows = { max_windows = 1 } })
+
+	local windows = require("wind.windows")
+	local tab_window_count = #api.nvim_tabpage_list_wins(0)
+
+	windows.create_window("vsplit")
+
+	assert_eq(1, #windows.list_content_windows(), "content window count should stay capped")
+	assert_eq(tab_window_count, #api.nvim_tabpage_list_wins(0), "no split should be created after hitting max_windows")
+end)
+
 test("zero based indexing still maps to current tab content windows", function()
 	reset({ windows = { zero_based_indexing = true } })
 
@@ -127,6 +175,28 @@ test("zero based indexing still maps to current tab content windows", function()
 
 	windows.focus_or_create_window(0, "vsplit")
 	assert_eq(first_window, api.nvim_get_current_win(), "index 0 should focus the first content window")
+end)
+
+test("swap_window still swaps buffers and focuses the target window", function()
+	reset()
+
+	local windows = require("wind.windows")
+
+	windows.create_window("vsplit")
+
+	local content_windows = windows.list_content_windows()
+	local first_window = content_windows[1]
+	local second_window = content_windows[2]
+
+	api.nvim_buf_set_lines(api.nvim_win_get_buf(first_window), 0, -1, false, { "first" })
+	api.nvim_buf_set_lines(api.nvim_win_get_buf(second_window), 0, -1, false, { "second" })
+
+	api.nvim_set_current_win(first_window)
+	windows.swap_window(2)
+
+	assert_eq(second_window, api.nvim_get_current_win(), "swap should focus the target window")
+	assert_eq("second", api.nvim_buf_get_lines(api.nvim_win_get_buf(first_window), 0, 1, false)[1])
+	assert_eq("first", api.nvim_buf_get_lines(api.nvim_win_get_buf(second_window), 0, 1, false)[1])
 end)
 
 test("toggle_maximize closes the maximized tab even when another tab is current", function()
@@ -151,6 +221,21 @@ test("toggle_maximize closes the maximized tab even when another tab is current"
 	assert_true(not api.nvim_tabpage_is_valid(maximized_tab), "maximized tab should be closed")
 	assert_true(api.nvim_tabpage_is_valid(extra_tab), "unrelated tab should remain open")
 	assert_eq(source_tab, api.nvim_get_current_tabpage(), "restore should return to the source tab")
+end)
+
+test("new close with save keymap config registers dynamic keymaps", function()
+	reset({
+		windows = {
+			max_windows = 1,
+			keymaps = {
+				close_window_with_save = "<Plug>(WindTestCloseSave)",
+			},
+		},
+	})
+
+	local mapping = vim.fn.maparg("<Plug>(WindTestCloseSave)1", "n", false, true)
+
+	assert_eq("Close window 1 with save", mapping.desc, "renamed keymap should be registered")
 end)
 
 test("line_separator controls AI clipboard formatting", function()
