@@ -1,427 +1,277 @@
-Wind.nvim *wind.nvim*
+*wind.txt*  Windows with addresses. Layouts with history.
 
-INTRODUCTION *wind*
+Author: Rocco Vaccone
+License: MIT
 
-Wind.nvim is a Neovim plugin to provide window management
-and clipboard utilities. It allows you to quickly focus or
-create windows by index, swap windows, and yank window contents
-formatting options for AI assistance. Move as fast as wind with
-this plugin.
+==============================================================================
+CONTENTS                                                        *wind-contents*
 
-TABLE OF CONTENTS
+  1. Introduction ................................. |wind-introduction|
+  2. Setup ........................................ |wind-setup|
+  3. Windows ...................................... |wind-windows|
+  4. Keymaps ...................................... |wind-keymaps|
+  5. Reveal ....................................... |wind-reveal|
+  6. Zoom ......................................... |wind-zoom|
+  7. History ...................................... |wind-history|
+  8. Breaths ...................................... |wind-breaths|
+  9. Configuration ................................ |wind-configuration|
+ 10. Commands ..................................... |wind-commands|
+ 11. API .......................................... |wind-api|
 
-    Introduction |wind|
-    Installation |wind-installation|
-	Quick Start |wind-quick-start|
-    Configuration |wind-configuration|
-	Windows	|wind-windows|
-	Windows Configuration |wind-windows-configuration|
-	Clipboard |wind-clipboard|
-	Clipboard Configuration |wind-clipboard-configuration|
+==============================================================================
+1. INTRODUCTION                                             *wind-introduction*
 
-INSTALLATION *wind-installation*
+Wind gives every window a number ordered by its place on screen, and every
+operation takes that number as its destination: focus it, move to it, swap
+with it, close it. There are no directional commands, because a route is
+something you compute and a destination is something you already know.
 
-Using lazy.nvim (recommended):
->
+Wind requires Neovim 0.10+.
+
+==============================================================================
+2. SETUP                                                          *wind-setup*
+
+Call the setup function from your plugin manager: >lua
+
+    require("wind").setup({})
+<
+Invalid configuration raises an error at startup instead of guessing.
+
+==============================================================================
+3. WINDOWS                                                      *wind-windows*
+
+Content windows are indexed 1-9 in flow order (default: left to right, top
+to bottom, following |win_screenpos()|). Excluded windows — file trees by
+default, and every floating window — are invisible to wind: never indexed,
+never closed by only, never captured in breaths.
+
+Focusing an index that does not exist creates one window anchored at the
+current window, on the flow side. Creation uses explicit split modifiers,
+so it behaves identically under any 'splitright' / 'splitbelow' setting.
+
+Moving inserts the current window's content at the target index and shifts
+the windows between; frames never move — contents flow through them.
+Closing is built on |:close| semantics: it can never quit Neovim and never
+discards buffer changes.
+
+At most nine windows are indexed. This is a hard ceiling: nine is the
+largest address space where every destination is a single, ambiguity-free
+keystroke, and needing a tenth window is usually a sign the layout should
+become a breath instead.
+
+==============================================================================
+4. KEYMAPS                                                      *wind-keymaps*
+
+`<leader>1` to `<leader>9` are plain mappings. Every other digit family is
+a single trigger mapping that shows the reveal and reads one key: a digit
+acts, a known verb acts, anything else cancels.
+
+    <leader>1-9        Focus window n / create beside current
+    <leader>v  1-9     Focus window n / create stacked beside current
+    <leader>w  1-9     Move current window to n (others shift)
+    <leader>w  x 1-9   Swap the current window with n
+    <leader>q  1-9     Close window n
+    <leader>z  1-9     Save and close window n
+    <leader>w  o       Only: close all other content windows
+    <leader>w  m       Zoom lens toggle
+    <leader>w  u / r   Layout undo / redo (count-aware)
+    <leader>w  =       Equalize window sizes
+    <leader>w  + / -   Grow / shrink submode (tap +/-, any key exits)
+    <leader>b  1-9     Return to breath n
+    <leader>b  b       Update the last-visited breath
+    <leader>b  n       Hold a new breath
+    <leader>b  d       Release the current breath
+    <leader>b  `       Alternate: toggle current and previous layout
+
+All keymaps work in normal and visual mode.
+
+==============================================================================
+5. REVEAL                                                        *wind-reveal*
+
+Press a family trigger and hesitate: after `reveal.delay_ms` (default
+150ms) a number badge appears centered in every content window. Type at
+full speed and the badges never appear — guidance costs the fast path
+nothing. Badges bloom in reading order; any keypress dismisses them
+immediately and acts. The current window's badge is dimmed.
+
+Hesitating on the bare prefix also reveals. wind never maps the prefix
+itself — that would steal it from which-key and every other leader
+mapping — it only observes it. In setups where a plugin such as which-key
+consumes the prefix immediately, badges appear right at `delay_ms`;
+without one they appear when the pending mapping resolves. Spatial badges
+and a which-key popup are complementary.
+
+The breath trigger shows a card instead: one column per breath, the number
+on the header row (`•` last visited, `~` drifted) and each window's file
+beneath, in index order.
+
+`:Wind reveal` shows the badges on demand; they linger and dissolve.
+Set `reveal.delay_ms = 0` for instant guidance, `reveal.animate = false`
+to disable all motion, or `reveal.enabled = false` to disable the overlay
+entirely (triggers still dispatch).
+
+Highlights are pure default links so themes and transparent backgrounds
+pass straight through, like a which-key window:
+
+    WindRevealBadge    →  NormalFloat
+    WindRevealBorder   →  FloatBorder
+    WindRevealCurrent  →  Comment
+    WindRevealBold     →  bold, layered over the theme via extmarks
+
+Override any of them to restyle.
+
+==============================================================================
+6. ZOOM                                                            *wind-zoom*
+
+The zoom lens fills the screen with the current window while the layout
+persists beneath, untouched. While zoomed:
+
+- `<leader>1-9` switches which window fills the screen. The lens follows
+  focus instead of breaking the layout.
+- Hesitating on the prefix shows a list of the windows beneath the lens,
+  since the layout itself is hidden.
+- Structural operations (create, close, move, swap, only, resize, undo)
+  are blocked with a quiet notice.
+
+Toggling again restores the exact prior view, returning focus to the
+window the lens was showing. Returning to a breath exits the lens first.
+The statusline component reports the lens target's index while zoomed.
+
+==============================================================================
+7. HISTORY                                                      *wind-history*
+
+Every structural action — create, close, move, swap, only, resize, breath
+returns — is recorded in one history per tabpage (up to 100 entries).
+
+Undo and redo walk it, count-aware: `3<leader>wu` undoes three layout
+actions. Undo, redo, grow, and shrink support dot repeat: pressing `.`
+repeats the last one. Layout operations never write, close, or edit a
+buffer: unsaved changes survive any amount of undoing and restoring.
+
+==============================================================================
+8. BREATHS                                                      *wind-breaths*
+
+A breath is a held layout state — fleeting by nature, kept only because you
+chose to hold it.
+
+hold~
+    Pin the current layout as the next breath number.
+
+return~
+    Rebuild breath n in the current tabpage: same splits, same files, same
+    cursor positions and focus, rebuilt around excluded windows. Returning
+    to the breath you are already on bounces to the alternate. Returning
+    to a breath that is not held pins the current layout as the next
+    breath instead — declaring a destination brings it into being, the
+    same way focusing a missing window creates one.
+
+update~
+    Re-pin the last-visited breath to the current layout. Drift is
+    deliberate until you say otherwise.
+
+release~
+    Forget the current breath (the one last visited). Numbers shift down,
+    exactly like windows. The last remaining breath can never be released,
+    so update and the alternate toggle always have a target. Release by
+    number with `:Wind release {n}`.
+
+alternate~
+    One register holding the layout you last jumped away from. Jump-class
+    actions (return, only, alternate itself) set it.
+
+Breaths record file paths, cursor positions, and fractional geometry —
+never buffer handles — so they restore cleanly after buffers close and
+terminal resizes. Window-local options and manual folds are not captured.
+Breath 1 is held automatically when the session enters (see
+`breaths.auto_hold_first`).
+
+==============================================================================
+9. CONFIGURATION                                          *wind-configuration*
+
+Defaults: >lua
+
     {
-        "rvaccone/wind.nvim",
-	---@type WindConfig
-	opts = {}
+        windows = {
+            max = 9,
+            flow = { horizontal = "right", vertical = "below" },
+            excluded = {
+                filetypes = { "neo-tree", "NvimTree", "netrw" },
+                bufnames = {},
+            },
+            notify = true,
+        },
+        breaths = {
+            max = 9,
+            auto_hold_first = true,
+        },
+        reveal = {
+            enabled = true,
+            delay_ms = 150,
+            animate = true,
+        },
+        keymaps = {
+            prefix = "<leader>",
+            window = {
+                namespace = "w",
+                stacked = "v",
+                swap = "x",
+                close = "q",
+                save_close = "z",
+                only = "o",
+                zoom = "m",
+                undo = "u",
+                redo = "r",
+                equalize = "=",
+                grow = "+",
+                shrink = "-",
+            },
+            breath = {
+                namespace = "b",
+                update = "b",
+                hold = "n",
+                release = "d",
+                alternate = "`",
+            },
+        },
     }
 <
+Keymaps are a prefix plus single characters by design: navigation, the
+reveal, and every digit family derive from the same few keys and cannot
+drift out of sync. Any verb accepts `false` to disable it; `keymaps =
+false` disables all of them. `windows.max` and `breaths.max` cannot exceed
+nine.
 
-Using packer.nvim:
->
-    use {
-        "rvaccone/wind.nvim",
-        config = function()
-            require("wind").setup(
-		---@type WindConfig
-		{}
-	    )
-        end,
-    }
+`flow` controls the side new windows appear on and the direction indexing
+reads the screen. `excluded.bufnames` takes Lua patterns matched against
+the buffer name.
+
+==============================================================================
+10. COMMANDS                                                   *wind-commands*
+
+:Wind reveal            Show window badges (linger and dissolve).
+:Wind breaths           Show the breath card.
+:Wind history           Echo recent layout actions; `›` marks the pointer.
+:Wind release {n}       Release breath n.
+
+`:checkhealth wind` reports version, configuration, and index status.
+
+==============================================================================
+11. API                                                             *wind-api*
+
+>lua
+    local wind = require("wind")
+
+    wind.index_of()           -- index of current window (or pass a win id)
+    wind.list()               -- ordered content window ids
+    wind.lualine_index()      -- statusline component: index of the
+                              -- window being drawn (uses statusline_winid)
+    wind.focus_or_create(n)   -- "vsplit" (default) or "split" second arg
+    wind.move(n)  wind.swap(n)  wind.close(n)  wind.save_close(n)
+    wind.only()   wind.zoom()   wind.equalize()
+    wind.undo(count)  wind.redo(count)
+    wind.hold()  wind.update()  wind.return_to(n)  wind.release(n)
+    wind.alternate()  wind.reveal()
 <
+`index_of` and `list` are cheap and safe to call from a statusline.
 
-QUICK START *wind-quick-start*
-
-Wind.nvim provides intuitive window management and clipboard utilities.
-To illustrate, try these basic commands after installing the plugin:
->
-    Windows:
-	<leader>2 -- Create a new horizontal window
-	<leader>1 -- Focus back on window 1
-	<leader>x2 -- Swap window 1 with window 2
-
-    Clipboard:
-	<leader>ya -- Yank current window with filepath
-	<leader>y# -- Yank current window in AI format
-	<leader>y* -- Yank all windows in an AI format
-<
-
-CONFIGURATION *wind-configuration*
-
-Here is the default configuration:
->
-{
-	windows = {
-		excluded_bufnames = {},
-		excluded_filetypes = { "help", "neo-tree", "notify" },
-		max_windows = 9,
-		zero_based_indexing = false,
-		notify = true,
-		keymaps = {
-			focus_or_create_horizontal_window = "<leader>", -- Prefix
-			focus_or_create_vertical_window = "<leader>v", -- Prefix
-			swap_window = "<leader>x", -- Prefix
-			close_window = "<leader>q", -- Prefix
-			close_window_with_save = "<leader>z", -- Prefix
-			toggle_maximize = "<leader>wm",
-			focus_or_create_left_window = "<leader>wh",
-			focus_or_create_below_window = "<leader>wj",
-			focus_or_create_above_window = "<leader>wk",
-			focus_or_create_right_window = "<leader>wl",
-			create_left_window = "<leader>wH",
-			create_below_window = "<leader>wJ",
-			create_above_window = "<leader>wK",
-			create_right_window = "<leader>wL",
-		},
-	},
-
-	clipboard = {
-		empty_filepath = "[No Name]",
-		notify = true,
-		ai = {
-			file_begin_text = "=== FILE BEGIN ===",
-			content_begin_text = "--- CONTENT ---",
-			file_end_text = "=== FILE END ===",
-			line_separator = "\n",
-			include_filetype = true,
-			include_line_count = true,
-			include_path = true,
-		},
-		keymaps = {
-			yank_current_window = "<leader>ya",
-			yank_current_window_ai = "<leader>y#",
-			yank_windows_ai = "<leader>y*",
-			yank_filename = "<leader>yn",
-		},
-	},
-}
-<
-
-You only need to specify options you want to change. The plugin will merge
-your configuration with the defaults using |vim.tbl_deep_extend()|. More
-information on the configuration options will be found in each respective
-section to better explain what each option does.
-
-WINDOWS MANAGEMENT *wind-windows*
-
-The primary purpose of Wind.nvim is to provide intuitive window management.
-It automatically indexes your windows and provides keymaps to focus, create,
-swap, and close them by index.
-
-Window indexing works as follows:
->
-    +----------------+  +----------------+  +----------------+  +----------------+
-    | Window 1       |  | Window 2       |  | Window 3       |  | Window 4       |
-    | Neo-tree       |  | file 1         |  | file 2         |  | help           |
-    | (excluded)     |  | (indexed)      |  | (indexed)      |  | (excluded)     |
-    +----------------+  +----------------+  +----------------+  +----------------+
-                        index: 1            index: 2
-<
-
-The first window is indexed at index 1, then windows are indexed left-to-right
-and top-to-bottom. Here's a slightly more complicated example with horizontal and
-vertical windows:
->
-    +----------------+  +----------------+  +------------------------------------+
-    | Window 1       |  | Window 2       |  | Window 3                           |
-    | Neo-tree       |  | file 1         |  | file 2                             |
-    | (excluded)     |  | (indexed)      |  | (indexed)                          |
-    +----------------+  +----------------+  +------------------------------------+
-                        index: 1            index: 2
-
-                                            +----------------+  +----------------+
-                                            | Window 4       |  | Window 5       |
-                                            | file 3         |  | file 4         |
-                                            | (indexed)      |  | (indexed)      |
-                                            +----------------+  +----------------+
-                                            index: 3            index: 4
-<
-
-For simplicity, the plugin will normally create new windows at the last indexed window. As
-a result, windows will always follow the same direction towards the bottom-right. However,
-if you manually create a window before the last indexed window, indexing will prioritize
-left-to-right and then top-to-bottom. Take this example:
-
->
-    +----------------+  +------------------------------------+  +------------------------------------+
-    | Window 1       |  | Window 2                           |  | Window 3                           |
-    | Neo-tree       |  | file 2                             |  | file 3                             |
-    | (excluded)     |  | (indexed)                          |  | (indexed)                          |
-    +----------------+  +------------------------------------+  +------------------------------------+
-                        index: 1                                index: 2
-
-                        +----------------+  +----------------+  +----------------+  +----------------+
-                        | Window 4       |  | Window 5       |  | Window 6       |  | Window 7       |
-                        | file 4         |  | file 5         |  | file 6         |  | file 7         |
-                        | (indexed)      |  | (indexed)      |  | (indexed)      |  | (indexed)      |
-                        +----------------+  +----------------+  +----------------+  +----------------+
-                        index: 3            index: 4            index: 5            index: 6
-<
-
-Wind.nvim can not create this layout using indexes because it does not support splits
-at a specific index. However, since the indexing is dynamic, Wind.nvim will still
-work properly to focus between the windows. You can still create this layout using
-directional keymaps.
-
-WINDOWS CONFIGURATION *wind-windows-configuration*
-
-Now that you know how the plugin indexes your windows, let's talk about
-configuration options for the plugin.
-
-`windows.excluded_bufnames` *wind-config-windows-excluded_bufnames*
-	type: string[]
-	default: {}
-
-	Lua patterns to match buffer names that should be excluded from window
-	indexing. For example, {"opencode"} will match any buffer name containing
-	"opencode" (e.g., "12345:opencode -- port").
-
-`windows.excluded_filetypes` *wind-config-windows-excluded_filetypes*
-	type: string[]
-	default: {"help", "neo-tree", "notify"}
-
-	Filetypes that should be excluded from window indexing. Windows with these
-	filetypes will not be included in the indexing process.
-
-`windows.max_windows` *wind-config-windows-max_windows*
-	type: integer
-	default: 9
-
-	Maximum number of windows to index. Take into account that if this value is
-	greater than 9, vim will add a slight delay to the keymaps to avoid conflicts.
-	For example, if you set this value to 10, vim will have a slight delay when you
-	press `<leader>1` to determine if you want to focus window 1 or are about to
-	create or focus window 10.
-
-`windows.zero_based_indexing` *wind-config-windows-zero_based_indexing*
-	type: boolean
-	default: false
-
-	Whether to use 0-based indexing instead of 1-based indexing. It's recommended
-	to use the 0 index for your filetree or similar.
-
-`windows.notify` *wind-config-windows-notify*
-	type: boolean
-	default: true
-
-	Whether to show notifications for window operations.
-
-`windows.keymaps` *wind-config-windows-keymaps*
-	type: WindWindowsKeymaps|boolean
-	default: see below
-
-	Keymap configuration for window management. You can set it to `false` to disable
-	all window keymaps.
-
-	`swap_window` *wind-config-windows-keymaps-swap_window*
-		type: string|boolean
-		default: "<leader>x"
-
-		Keymap prefix for swapping current window with target window.
-		Set to `false` to disable this keymap.
-
-	`close_window` *wind-config-windows-keymaps-close_window*
-		type: string|boolean
-		default: "<leader>q"
-
-		Keymap prefix for closing target window. Set to `false` to disable this keymap.
-
-	`close_window_with_save` *wind-config-windows-keymaps-close_window_with_save*
-		type: string|boolean
-		default: "<leader>z"
-
-		Keymap prefix for closing target window with save.
-		Set to `false` to disable this keymap.
-
-	`toggle_maximize` *wind-config-windows-keymaps-toggle_maximize*
-		type: string|boolean
-		default: "<leader>wm"
-
-		Keymap for toggling maximization on the current window.
-		Set to `false` to disable this keymap.
-
-	`focus_or_create_left_window` *wind-config-windows-keymaps-focus_or_create_left_window*
-		type: string|boolean
-		default: "<leader>wh"
-
-		Keymap for focusing or creating a window to the left of the current window.
-		Set to `false` to disable this keymap.
-
-	`focus_or_create_below_window` *wind-config-windows-keymaps-focus_or_create_below_window*
-		type: string|boolean
-		default: "<leader>wj"
-
-		Keymap for focusing or creating a window below the current window.
-		Set to `false` to disable this keymap.
-
-	`focus_or_create_above_window` *wind-config-windows-keymaps-focus_or_create_above_window*
-		type: string|boolean
-		default: "<leader>wk"
-
-		Keymap for focusing or creating a window above the current window.
-		Set to `false` to disable this keymap.
-
-	`focus_or_create_right_window` *wind-config-windows-keymaps-focus_or_create_right_window*
-		type: string|boolean
-		default: "<leader>wl"
-
-		Keymap for focusing or creating a window to the right of the current window.
-		Set to `false` to disable this keymap.
-
-	`create_left_window` *wind-config-windows-keymaps-create_left_window*
-		type: string|boolean
-		default: "<leader>wH"
-
-		Keymap for creating a window to the left of the current window.
-		Set to `false` to disable this keymap.
-
-	`create_below_window` *wind-config-windows-keymaps-create_below_window*
-		type: string|boolean
-		default: "<leader>wJ"
-
-		Keymap for creating a window below the current window.
-		Set to `false` to disable this keymap.
-
-	`create_above_window` *wind-config-windows-keymaps-create_above_window*
-		type: string|boolean
-		default: "<leader>wK"
-
-		Keymap for creating a window above the current window.
-		Set to `false` to disable this keymap.
-
-	`create_right_window` *wind-config-windows-keymaps-create_right_window*
-		type: string|boolean
-		default: "<leader>wL"
-
-		Keymap for creating a window to the right of the current window.
-		Set to `false` to disable this keymap.
-
-CLIPBOARD  *wind-clipboard*
-
-To compliment the window management, Wind.nvim also provides clipboard utilities to
-simply move faster. Each clipboard command features a relative filepath to make it
-more intuitive to distinguish between copied files.
-
-It also provides AI-friendly formatting options to make it easier to use with LLMs.
-This format helps by providing more metadata about the file and more clearly separating
-files. For example, each AI-formatted file will look like this:
->
-	=== FILE BEGIN ===
-	Path: (relative path)
-	Filetype: (filetype)
-	Lines: (number of lines)
-	--- CONTENT ---
-	(file content)
-	=== FILE END ===
-<
-
-CLIPBOARD CONFIGURATION *wind-clipboard-configuration*
-
-Clipboard configuration options are straightforward.
-
-`clipboard.empty_filepath` *wind-config-clipboard-empty_filepath*
-	type: string
-	default: "[No Name]"
-
-	Filepath to use when the file has no path. For example, blank or unnamed files will
-	have this filepath.
-
-`clipboard.notify` *wind-config-clipboard-notify*
-	type: boolean
-	default: true
-
-	Whether to show notifications for clipboard operations.
-
-`clipboard.ai` *wind-config-clipboard-ai*
-	type: WindClipboardAIConfig
-	default: see below
-
-	AI-friendly formatting options for clipboard operations.
-
-	`file_begin_text` *wind-config-clipboard-ai-file_begin_text*
-		type: string
-		default: "=== FILE BEGIN ==="
-
-		Text to use at the beginning of the clipboard file.
-
-	`content_begin_text` *wind-config-clipboard-ai-content_begin_text*
-		type: string
-		default: "--- CONTENT ---"
-
-		Text to use at the beginning of the clipboard content. Note that this text
-		will be followed by a newline.
-
-	`file_end_text` *wind-config-clipboard-ai-file_end_text*
-		type: string
-		default: "=== FILE END ==="
-
-		Text to use at the end of the clipboard file.
-
-	`line_separator` *wind-config-clipboard-ai-line_separator*
-		type: string
-		default: "\n"
-
-		Line separator to use in AI-formatted output.
-
-	`include_filetype` *wind-config-clipboard-ai-include_filetype*
-		type: boolean
-		default: true
-
-		Whether to include the filetype in the clipboard file.
-
-	`include_line_count` *wind-config-clipboard-ai-include_line_count*
-		type: boolean
-		default: true
-
-		Whether to include the number of lines in the clipboard file.
-
-	`include_path` *wind-config-clipboard-ai-include_path*
-		type: boolean
-		default: true
-
-		Whether to include the relative file path in the clipboard file.
-
-`clipboard.keymaps` *wind-config-clipboard-keymaps*
-	type: WindClipboardKeymaps|boolean
-	default: see below
-
-	Keymap configuration for clipboard operations. You can set it to `false` to disable
-	all clipboard keymaps.
-
-	`yank_current_window` *wind-config-clipboard-keymaps-yank_current_window*
-		type: string|boolean
-		default: "<leader>ya"
-
-		Keymap for yanking the current window. Set to `false` to disable this keymap.
-
-	`yank_current_window_ai` *wind-config-clipboard-keymaps-yank_current_window_ai*
-		type: string|boolean
-		default: "<leader>y#"
-
-		Keymap for AI-formatted current window. Set to `false` to disable this keymap.
-
-	`yank_windows_ai` *wind-config-clipboard-keymaps-yank_windows_ai*
-		type: string|boolean
-		default: "<leader>y*"
-
-		Keymap for AI-formatted all windows. Set to `false` to disable this keymap.
-
-	`yank_filename` *wind-config-clipboard-keymaps-yank_filename*
-		type: string|boolean
-		default: "<leader>yn"
-
-		Keymap for yanking the filename of the current buffer. Set to `false`
-		to disable this keymap.
+vim:tw=78:ts=8:noet:ft=help:norl:
