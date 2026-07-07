@@ -98,17 +98,29 @@ are both idiomatic and precise: hold / return / release.
 
 ### Reveal
 
-- Bare focus prefix (`<leader>`): badges appear after `hesitation_ms`
-  (default 200) — fast presses never see them.
-- `move` / `breath` prefixes: badges appear immediately (a number is the only
-  possible continuation). Move shows badges on _other_ windows; breath shows
-  small cards (number + held filenames + drift marker `*`).
+- Each digit family (`stacked`, `move`, `swap`, `close`, `save_close`, and
+  later `breath`) is a **single trigger mapping**: pressing `<leader>w`
+  shows badges immediately and reads one key — a digit acts, a known verb
+  (`o`, `m`) acts, anything else cancels. This is architecturally forced,
+  not stylistic: keys inside a pending native mapping are invisible to
+  observers (`vim.on_key` only sees keys as they resolve), so guidance must
+  _own_ the pending state. Verified against a live server. Bonus: badges
+  appear with zero delay, because a lone trigger has no mapping ambiguity
+  to wait out.
+- Focus digits (`<leader>1–9`) stay pure native mappings — the reflex path
+  has zero added latency and never shows UI. `:Wind reveal` shows badges on
+  demand with a vapor linger for orientation.
+- The bare prefix is deliberately **not** mapped: hijacking `<leader>`
+  would steal hesitation behavior from which-key and every other leader map
+  in a user's config. wind guides its own namespaces; which-key keeps the
+  rest.
 - Badge object: small rounded float, centered per window, single bold digit,
-  identical size everywhere. Current window's badge renders hollow/dim.
-- Gust motion: ~15ms stagger in index order; fade in ~140ms ease-out; fade
-  out ~220ms ease-in (`winblend` stepping). `reveal.animate = false` disables
-  all motion. Dismissal on keypress is instant and unconditional.
-- Implementation: `vim.on_key` watcher + timer. No which-key dependency.
+  identical size everywhere. Current window's badge renders dim.
+- Gust motion: ~15ms stagger in index order; fade in ~140ms ease-out to a
+  resting `winblend` of 15 (vapor, slightly translucent); manual reveals
+  dissolve over ~300ms after a linger. `reveal.animate = false` disables all
+  motion. Dismissal on keypress is instant and unconditional, and every
+  animation tick redraws so badges paint inside the blocking dispatch loop.
 
 ### Actions & history
 
@@ -171,25 +183,27 @@ are both idiomatic and precise: hold / return / release.
 
 ## Keymaps
 
-Everything is verb + destination. `1–9` maps are generated per digit.
+Everything is verb + destination. `<leader>1–9` are native per-digit maps;
+every other digit family is one trigger that reveals badges and reads the
+digit itself.
 
 | Keys                        | Action                                                                  |
 | --------------------------- | ----------------------------------------------------------------------- |
 | `<leader>1–9`               | Focus window n / create beside current window (side-by-side, flow side) |
-| `<leader>v1–9`              | Focus window n / create beside current window (stacked, flow side)      |
-| `<leader>w1–9`              | Move current window to n (shift)                                        |
-| `<leader>x1–9`              | Swap current window with n _(provisional)_                              |
-| `<leader>q1–9`              | Close window n                                                          |
-| `<leader>z1–9`              | Save & close window n                                                   |
+| `<leader>v` + 1–9           | Focus window n / create beside current window (stacked, flow side)      |
+| `<leader>w` + 1–9           | Move current window to n (shift)                                        |
+| `<leader>x` + 1–9           | Swap current window with n _(provisional)_                              |
+| `<leader>q` + 1–9           | Close window n                                                          |
+| `<leader>z` + 1–9           | Save & close window n                                                   |
 | `<leader>wo`                | Only — close all other content windows                                  |
 | `<leader>wm`                | Zoom lens toggle                                                        |
 | `<leader>wu` / `<leader>wr` | Layout undo / redo (count-aware)                                        |
 | `<leader>w=`                | Equalize                                                                |
 | `<leader>w+` / `<leader>w-` | Grow / shrink (enters resize submode)                                   |
-| `<leader>b1–9`              | Return to breath n                                                      |
+| `<leader>b` + 1–9           | Return to breath n                                                      |
 | `<leader>bb`                | Update the last-visited breath (the daily verb gets the double-tap)     |
 | `<leader>bn`                | Hold a new breath                                                       |
-| `<leader>bd1–9`             | Release breath n                                                        |
+| `<leader>bd` + 1–9          | Release breath n                                                        |
 | `` <leader>b` ``            | Alternate — toggle current ↔ previous layout                            |
 
 Commands: `:Wind reveal`, `:Wind history`, `:Wind breaths`,
@@ -212,7 +226,7 @@ not destination), send-window-to-set (modify the present, update the breath).
     notify = true,
   },
   reveal = {
-    hesitation_ms = 200,
+    enabled = true,
     animate = true,
   },
   breaths = {
@@ -236,7 +250,7 @@ lua/wind/
   actions.lua     -- THE dispatcher: Action records, history, undo/redo
   snapshot.lua    -- layout serialize/restore (winlayout tree walk)
   breath.lua      -- held states, alternate register, drift
-  reveal.lua      -- badges, gust animation, on_key hesitation watcher
+  reveal.lua      -- badges, gust animation, vapor dissolve
   zoom.lua        -- lens state machine, structural lockout
   resize.lua      -- grow/shrink submode, equalize
   keymaps.lua     -- binding generation from config
