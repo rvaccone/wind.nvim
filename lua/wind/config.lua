@@ -297,12 +297,11 @@ local function validate(config)
 	check_distinct("keymaps", {
 		["window.namespace"] = window.namespace,
 		["window.stacked"] = window.stacked,
-		["window.swap"] = window.swap,
 		["window.close"] = window.close,
 		["window.save_close"] = window.save_close,
 		["breath.namespace"] = breath.namespace,
-	}, { "window.namespace", "window.stacked", "window.swap", "window.close", "window.save_close", "breath.namespace" })
-	check_distinct("keymaps.window", window, { "only", "zoom", "undo", "redo", "equalize", "grow", "shrink" })
+	}, { "window.namespace", "window.stacked", "window.close", "window.save_close", "breath.namespace" })
+	check_distinct("keymaps.window", window, { "swap", "only", "zoom", "undo", "redo", "equalize", "grow", "shrink" })
 	check_distinct("keymaps.breath", breath, { "update", "hold", "release", "alternate" })
 end
 

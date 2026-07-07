@@ -139,7 +139,7 @@ here are some quick tips:
 | `<leader>1` - `<leader>9`   | Focus or create window 1-9         |
 | `<leader>v` + `1-9`         | Focus or create stacked window 1-9 |
 | `<leader>w` + `1-9`         | Move the current window to 1-9     |
-| `<leader>x` + `1-9`         | Swap the current window with 1-9   |
+| `<leader>wx` + `1-9`        | Swap the current window with 1-9   |
 | `<leader>q` + `1-9`         | Close window 1-9                   |
 | `<leader>z` + `1-9`         | Save and close window 1-9          |
 | `<leader>wo`                | Close every other window           |

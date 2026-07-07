@@ -171,6 +171,11 @@ function M.setup()
 	if window.zoom then
 		verbs[window.zoom] = actions.zoom
 	end
+	if window.swap then
+		verbs[window.swap] = function()
+			guided(digits(window_max, actions.swap), reveal.show)
+		end
+	end
 	if window.undo then
 		verbs[window.undo] = function(count)
 			actions.undo(count)
@@ -201,10 +206,6 @@ function M.setup()
 		end
 	end
 	family(prefix .. window.namespace, digits(window_max, actions.move, verbs), "Move window to 1-9")
-
-	if window.swap then
-		family(prefix .. window.swap, digits(window_max, actions.swap), "Swap window with 1-9")
-	end
 
 	if window.close then
 		family(prefix .. window.close, digits(window_max, actions.close), "Close window 1-9")

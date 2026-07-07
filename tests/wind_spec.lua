@@ -67,7 +67,11 @@ test("config: rejects max above nine", function()
 end)
 
 test("config: rejects duplicate keymap characters", function()
-	ok(not pcall(require("wind.config").setup, { keymaps = { window = { swap = "q" } } }), "swap = close must fail")
+	ok(
+		not pcall(require("wind.config").setup, { keymaps = { window = { stacked = "q" } } }),
+		"stacked = close must fail"
+	)
+	ok(not pcall(require("wind.config").setup, { keymaps = { window = { swap = "m" } } }), "swap = zoom must fail")
 end)
 
 test("config: rejects unknown options", function()

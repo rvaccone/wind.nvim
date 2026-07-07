@@ -87,8 +87,10 @@ are both idiomatic and precise: hold / return / release.
   `splitright`/`splitbelow` configuration.
 - `move(n)`: the current window's buffer inserts at index n; displaced
   buffers shift toward the vacated slot. Frames never move (Principle 4).
-- `swap(n)`: exchange buffers of current and n. Provisional — may be removed
-  if dogfooding shows `move` covers it.
+- `swap(n)`: exchange buffers of current and n. Lives inside the window
+  namespace (`<leader>wx` + digit) rather than on the root prefix: move is
+  the primary rearranging verb, swap is its rarer sibling, and the root
+  keeps only the daily families.
 - `close(n)` / `save_close(n)`: built on `:close` (never `:q` — closing a
   window must never quit Neovim). Focus returns to the window you were in.
   View state (`winsaveview`) is preserved wherever buffers move.
@@ -224,7 +226,7 @@ digit itself.
 | `<leader>1–9`               | Focus window n / create beside current window (side-by-side, flow side) |
 | `<leader>v` + 1–9           | Focus window n / create beside current window (stacked, flow side)      |
 | `<leader>w` + 1–9           | Move current window to n (shift)                                        |
-| `<leader>x` + 1–9           | Swap current window with n _(provisional)_                              |
+| `<leader>wx` + 1–9          | Swap current window with n                                              |
 | `<leader>q` + 1–9           | Close window n                                                          |
 | `<leader>z` + 1–9           | Save & close window n                                                   |
 | `<leader>wo`                | Only — close all other content windows                                  |
@@ -334,9 +336,11 @@ terminal resizes and the presence/absence of excluded side windows.
 
 ## Open questions
 
-- Does `swap` survive dogfooding once `move` exists?
 - Cross-session breath persistence (serialize to disk per project) — v1.x,
   not v1.0.
+
+Resolved for v1.0.0: swap survives, demoted into the window namespace
+(`<leader>wx` + digit) — the root prefix keeps only the daily families.
 
 Resolved during implementation: history is per tabpage; snapshots capture
 the focused leaf so returns restore focus; restore uses `bufadd` +

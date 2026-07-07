@@ -69,7 +69,7 @@ acts, a known verb acts, anything else cancels.
     <leader>1-9        Focus window n / create beside current
     <leader>v  1-9     Focus window n / create stacked beside current
     <leader>w  1-9     Move current window to n (others shift)
-    <leader>x  1-9     Swap current window with n
+    <leader>w  x 1-9   Swap the current window with n
     <leader>q  1-9     Close window n
     <leader>z  1-9     Save and close window n
     <leader>w  o       Only: close all other content windows
