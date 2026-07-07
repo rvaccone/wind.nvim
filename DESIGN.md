@@ -66,9 +66,22 @@ are both idiomatic and precise: hold / return / release.
 
 - Content windows are indexed 1–9 in flow order (default: left→right,
   top→bottom, by `win_screenpos`). Excluded windows never index.
-- `focus(n)`: jump to window n. If it doesn't exist, create **one** window at
-  the flow edge (after the last index) and notify honestly ("created window
-  4" when you pressed 7).
+- `focus(n)`: jump to window n. If it doesn't exist, create **one** window
+  **anchored at the current window**, on the flow side, orientation per
+  keymap family (side-by-side for the plain digits, stacked for the `v`
+  family). Notify the actual index created ("created window 2" even if you
+  pressed 9).
+  - Rationale: `move`/`swap` permute buffers through _fixed_ frames, so a
+    frame below the middle of three columns is unreachable unless creation
+    can anchor anywhere. Anchoring at the current window makes every
+    geometry expressible by composition: `<leader>2` then `<leader>v9` reads
+    "window 2; new stacked window here."
+  - Consequences: on the last window this degenerates to v0's edge-append
+    (the old behavior is the special case, not a change); `<leader>9` /
+    `<leader>v9` become the universal "new window beside/below me" reflex —
+    you never count windows to create.
+  - If the current window is not a content window (e.g. focus is in
+    neo-tree), anchor falls back to the last indexed window (flow edge).
 - Creation uses explicit split modifiers (`leftabove`/`rightbelow` per flow)
   — never bare `:split`/`:vsplit` — so behavior is identical under any
   `splitright`/`splitbelow` configuration.
@@ -114,7 +127,13 @@ are both idiomatic and precise: hold / return / release.
 - **update**: re-pin the **last-visited** breath to the current layout
   (`commit -a` for layouts). Explicit, one keymap — drift is deliberate
   until you say otherwise.
-- **release(n)**: forget a breath. Command-only (`:Wind release 3`).
+- **release(n)**: forget breath n. Verb + destination like the close-window
+  family (`<leader>bd3`); also `:Wind release 3` for scripting.
+- **return(n) when breath n doesn't exist**: notify quietly, create nothing.
+  Unlike window creation (visible immediately, undoable), an implicitly held
+  breath is invisible state — a phantom that pollutes the reveal cards. With
+  `hold` on its own key, deliberate creation has a home; implicit creation
+  could only ever produce accidents.
 - **alternate**: one register, set by jump-class actions (return, only,
   large undo jumps). Toggle swaps current ↔ alternate. Returning to the
   breath you are already on also bounces to the alternate.
@@ -154,23 +173,24 @@ are both idiomatic and precise: hold / return / release.
 
 Everything is verb + destination. `1–9` maps are generated per digit.
 
-| Keys                        | Action                                              |
-| --------------------------- | --------------------------------------------------- |
-| `<leader>1–9`               | Focus window n / create at flow edge (side-by-side) |
-| `<leader>v1–9`              | Focus window n / create at flow edge (stacked)      |
-| `<leader>w1–9`              | Move current window to n (shift)                    |
-| `<leader>x1–9`              | Swap current window with n _(provisional)_          |
-| `<leader>q1–9`              | Close window n                                      |
-| `<leader>z1–9`              | Save & close window n                               |
-| `<leader>wo`                | Only — close all other content windows              |
-| `<leader>wm`                | Zoom lens toggle                                    |
-| `<leader>wu` / `<leader>wr` | Layout undo / redo (count-aware)                    |
-| `<leader>w=`                | Equalize                                            |
-| `<leader>w+` / `<leader>w-` | Grow / shrink (enters resize submode)               |
-| `<leader>b1–9`              | Return to breath n                                  |
-| `<leader>bb`                | Hold a new breath                                   |
-| `<leader>bu`                | Update the last-visited breath                      |
-| `` <leader>b` ``            | Alternate — toggle current ↔ previous layout        |
+| Keys                        | Action                                                                  |
+| --------------------------- | ----------------------------------------------------------------------- |
+| `<leader>1–9`               | Focus window n / create beside current window (side-by-side, flow side) |
+| `<leader>v1–9`              | Focus window n / create beside current window (stacked, flow side)      |
+| `<leader>w1–9`              | Move current window to n (shift)                                        |
+| `<leader>x1–9`              | Swap current window with n _(provisional)_                              |
+| `<leader>q1–9`              | Close window n                                                          |
+| `<leader>z1–9`              | Save & close window n                                                   |
+| `<leader>wo`                | Only — close all other content windows                                  |
+| `<leader>wm`                | Zoom lens toggle                                                        |
+| `<leader>wu` / `<leader>wr` | Layout undo / redo (count-aware)                                        |
+| `<leader>w=`                | Equalize                                                                |
+| `<leader>w+` / `<leader>w-` | Grow / shrink (enters resize submode)                                   |
+| `<leader>b1–9`              | Return to breath n                                                      |
+| `<leader>bb`                | Update the last-visited breath (the daily verb gets the double-tap)     |
+| `<leader>bn`                | Hold a new breath                                                       |
+| `<leader>bd1–9`             | Release breath n                                                        |
+| `` <leader>b` ``            | Alternate — toggle current ↔ previous layout                            |
 
 Commands: `:Wind reveal`, `:Wind history`, `:Wind breaths`,
 `:Wind release <n>`, plus `:checkhealth wind`.
@@ -264,9 +284,6 @@ terminal resizes and the presence/absence of excluded side windows.
 
 ## Open questions
 
-- `<leader>b3` when breath 3 doesn't exist: error, or hold current layout as
-  breath 3? (Leaning **hold** — idempotent destination declaration, and
-  holding is never destructive.)
 - Does `swap` survive dogfooding once `move` exists?
 - History scope: per tabpage or global? (Leaning per tabpage; zoom is the
   only tab consumer today and it's excluded from indexing.)
