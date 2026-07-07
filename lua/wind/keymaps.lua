@@ -11,14 +11,29 @@ end
 --- Show guidance, read one key, act. Owning the pending state is the only
 --- way to guide it: keys inside a native pending mapping are invisible
 --- until they resolve, so each digit family is a trigger plus this loop.
+--- Guidance appears only after a slight hesitation — muscle-memory speed
+--- never sees it.
 ---@param dispatch table<string, fun(count: integer)>
 ---@param show fun()
 local function guided(dispatch, show)
 	local count = vim.v.count1
 	local reveal = require("wind.reveal")
-	show()
+
+	local delay = config.get().reveal.delay_ms
+	local pending
+	if delay > 0 then
+		pending = vim.defer_fn(show, delay)
+	else
+		show()
+	end
+
 	local ok, char = pcall(vim.fn.getcharstr)
+	if pending and not pending:is_closing() then
+		pending:stop()
+		pending:close()
+	end
 	reveal.hide()
+
 	if not ok then
 		return
 	end

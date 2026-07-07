@@ -42,18 +42,18 @@ there" instead of "where am I going" does not belong in this plugin.
 
 Theme the nouns unique to wind's model; keep every verb literal.
 
-| Term               | Meaning                                                                                                                                                   |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **window / index** | A content window and its geometric number (1–9), ordered by flow. Excluded windows (neo-tree, help, terminals…) are invisible to wind.                    |
-| **flow**           | The configured direction layouts grow (default: right, below). Creation, index order, and overflow all obey it.                                           |
-| **reveal**         | The transient badge overlay. Appears on hesitation after a prefix, instantly after `move`/`breath` prefixes.                                              |
-| **gust**           | The reveal's motion: badges bloom in index order with a short stagger, sweeping in the flow direction.                                                    |
-| **action**         | Any structural mutation (create, close, move, swap, only, resize-commit, return, …). Recorded in one history.                                             |
-| **history**        | The session's ordered action log. Walked by layout undo/redo.                                                                                             |
-| **breath**         | A held layout state — fleeting by nature, kept only because you chose to hold it. You **hold** a breath, **return** to it, **update** it, **release** it. |
-| **alternate**      | The layout you most recently jumped away from. One register, toggled like `<C-^>`.                                                                        |
-| **drift**          | Divergence between the current layout and the last breath you visited. Shown transiently in the reveal, never as permanent chrome.                        |
-| **zoom**           | The lens: one window fills the screen while the layout persists beneath. Navigation moves the lens; structure is locked.                                  |
+| Term               | Meaning                                                                                                                                                                     |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **window / index** | A content window and its geometric number (1–9), ordered by flow. Excluded windows (neo-tree, help, terminals…) are invisible to wind.                                      |
+| **flow**           | The configured direction layouts grow (default: right, below). Creation, index order, and overflow all obey it.                                                             |
+| **reveal**         | The transient badge overlay. Appears on hesitation inside any family trigger; fast typing never sees it. The breath trigger shows a card listing every held window instead. |
+| **gust**           | The reveal's motion: badges bloom in index order with a short stagger, sweeping in the flow direction.                                                                      |
+| **action**         | Any structural mutation (create, close, move, swap, only, resize-commit, return, …). Recorded in one history.                                                               |
+| **history**        | The session's ordered action log. Walked by layout undo/redo.                                                                                                               |
+| **breath**         | A held layout state — fleeting by nature, kept only because you chose to hold it. You **hold** a breath, **return** to it, **update** it, **release** it.                   |
+| **alternate**      | The layout you most recently jumped away from. One register, toggled like `<C-^>`.                                                                                          |
+| **drift**          | Divergence between the current layout and the last breath you visited. Shown transiently in the reveal, never as permanent chrome.                                          |
+| **zoom**           | The lens: one window fills the screen while the layout persists beneath. Navigation moves the lens; structure is locked.                                                    |
 
 Considered and rejected for "breath": _still_ (film-frame pun, but no natural
 verbs), _eddy_ (poetic, obscure), _waypoint_ (clear, not fleeting),
@@ -98,15 +98,17 @@ are both idiomatic and precise: hold / return / release.
 
 ### Reveal
 
-- Each digit family (`stacked`, `move`, `swap`, `close`, `save_close`, and
-  later `breath`) is a **single trigger mapping**: pressing `<leader>w`
-  shows badges immediately and reads one key — a digit acts, a known verb
-  (`o`, `m`) acts, anything else cancels. This is architecturally forced,
-  not stylistic: keys inside a pending native mapping are invisible to
-  observers (`vim.on_key` only sees keys as they resolve), so guidance must
-  _own_ the pending state. Verified against a live server. Bonus: badges
-  appear with zero delay, because a lone trigger has no mapping ambiguity
-  to wait out.
+- Each digit family (`stacked`, `move`, `swap`, `close`, `save_close`,
+  `breath`) is a **single trigger mapping**: it reads one key — a digit
+  acts, a known verb (`o`, `m`) acts, anything else cancels. This is
+  architecturally forced, not stylistic: keys inside a pending native
+  mapping are invisible to observers (`vim.on_key` only sees keys as they
+  resolve), so guidance must _own_ the pending state. Verified against a
+  live server.
+- Guidance appears after a **hesitation** (`reveal.delay_ms`, default
+  150ms, 0 = instant): type `<leader>w2` at speed and badges never render;
+  pause after the trigger and they bloom. Owning the pending state is what
+  makes true hesitation implementable — Principle 5, literally.
 - Focus digits (`<leader>1–9`) stay pure native mappings — the reflex path
   has zero added latency and never shows UI. `:Wind reveal` shows badges on
   demand with a vapor linger for orientation.
@@ -231,6 +233,7 @@ not destination), send-window-to-set (modify the present, update the breath).
   },
   reveal = {
     enabled = true,
+    delay_ms = 150,              -- hesitation before guidance; 0 = instant
     animate = true,
   },
   breaths = {

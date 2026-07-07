@@ -89,10 +89,13 @@ key.
 | `<leader>b` + `d` + `1–9` | Release breath n                                    |
 | `` <leader>b` ``          | Alternate — toggle current ↔ previous layout        |
 
-Pressing a trigger (`<leader>w`, `<leader>q`, …) shows a badge on every
-window instantly; press a digit to act or anything else to cancel. The
-badges bloom in reading order and rest slightly translucent — and any
-keypress dismisses them immediately. `:Wind reveal` shows them on demand.
+Press a trigger (`<leader>w`, `<leader>q`, …) and pause: a badge appears on
+every window after a slight hesitation (`reveal.delay_ms`, default 150ms);
+press a digit to act or anything else to cancel. Type at full speed and the
+badges never appear at all — guidance is for the moment you hesitate, never
+a cost on the moment you don't. Badges bloom in reading order, rest
+slightly translucent, and any keypress dismisses them immediately.
+`:Wind reveal` shows them on demand.
 
 Closing can never quit Neovim and never discards changes. Creation places
 windows identically regardless of your `splitright` / `splitbelow` settings.
@@ -128,7 +131,8 @@ to hold it.
 
 `<leader>bb` re-pins the last-visited breath to the current layout, and
 `` <leader>b` `` bounces between the current layout and the one you last
-jumped away from. `<leader>b` alone shows a card listing what is held —
+jumped away from. `<leader>b` alone shows a card listing every window of
+every held breath, in index order —
 `•` marks the breath you're on, `~` means you've drifted from it.
 
 Breaths record file paths, not buffer handles, so they restore cleanly even
@@ -156,6 +160,7 @@ The defaults:
     },
     reveal = {
         enabled = true,
+        delay_ms = 150, -- hesitation before guidance appears; 0 = instant
         animate = true,
     },
     keymaps = {

@@ -225,6 +225,8 @@ function M.show(opts)
 	end
 end
 
+--- Every window of the breath, in index order — the list is a preview of
+--- what each digit will address after returning.
 ---@param node WindSnapshotNode
 ---@return string
 local function breath_label(node)
@@ -240,11 +242,7 @@ local function breath_label(node)
 		end
 	end
 	walk(node)
-	local label = names[1] or "[empty]"
-	if #names > 1 then
-		label = ("%s +%d"):format(label, #names - 1)
-	end
-	return label
+	return table.concat(names, " · ")
 end
 
 --- One centered panel: number, marker (• last visited, ~ drifted), files.
@@ -273,9 +271,13 @@ function M.show_breaths()
 		end
 	end
 
+	local max_width = math.max(20, vim.o.columns - 8)
 	local width = 0
-	for _, line in ipairs(lines) do
-		width = math.max(width, api.nvim_strwidth(line))
+	for i, line in ipairs(lines) do
+		if api.nvim_strwidth(line) > max_width then
+			lines[i] = vim.fn.strcharpart(line, 0, max_width - 2) .. "… "
+		end
+		width = math.max(width, api.nvim_strwidth(lines[i]))
 	end
 
 	local buf = api.nvim_create_buf(false, true)

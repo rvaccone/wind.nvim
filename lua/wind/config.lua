@@ -20,6 +20,7 @@ local M = {}
 
 ---@class WindRevealConfig
 ---@field enabled? boolean
+---@field delay_ms? integer Hesitation before guidance appears in a dispatch loop (0 = instant)
 ---@field animate? boolean Gust stagger and vapor fades
 
 ---@class WindWindowKeys
@@ -83,7 +84,7 @@ local M = {}
 ---@class WindResolvedConfig
 ---@field windows { max: integer, flow: { horizontal: "right"|"left", vertical: "below"|"above" }, excluded: { filetypes: string[], bufnames: string[] }, notify: boolean }
 ---@field breaths { max: integer, auto_hold_first: boolean }
----@field reveal { enabled: boolean, animate: boolean }
+---@field reveal { enabled: boolean, delay_ms: integer, animate: boolean }
 ---@field keymaps WindResolvedKeymaps|false
 
 ---@type WindResolvedConfig
@@ -103,6 +104,7 @@ M.defaults = {
 	},
 	reveal = {
 		enabled = true,
+		delay_ms = 150,
 		animate = true,
 	},
 	keymaps = {
@@ -227,9 +229,12 @@ local function validate(config)
 	check_type("breaths.auto_hold_first", breaths.auto_hold_first, "boolean")
 
 	local reveal = config.reveal
-	check_keys("reveal", reveal, { enabled = true, animate = true })
+	check_keys("reveal", reveal, { enabled = true, delay_ms = true, animate = true })
 	check_type("reveal.enabled", reveal.enabled, "boolean")
 	check_type("reveal.animate", reveal.animate, "boolean")
+	if type(reveal.delay_ms) ~= "number" or reveal.delay_ms < 0 then
+		fail("`reveal.delay_ms` must be a non-negative number")
+	end
 
 	local keymaps = config.keymaps
 	if keymaps == false then

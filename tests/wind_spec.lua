@@ -564,14 +564,27 @@ test("resize: smart dimension steps and equalize", function()
 	ok(math.abs(widths[1] - widths[2]) <= 1 and math.abs(widths[2] - widths[3]) <= 1, "equalized")
 end)
 
-test("breath cards render and dismiss", function()
+test("breath cards render, list every window, and dismiss", function()
 	release_all()
-	edit("spec_a")
+	edit("spec_alpha")
+	wind.focus_or_create(9, "vsplit")
+	edit("spec_beta")
 	breath.hold()
 
 	local reveal = require("wind.reveal")
 	reveal.show_breaths()
 	eq(float_count(), 1, "one card panel")
+
+	local card_line
+	for _, win in ipairs(api.nvim_tabpage_list_wins(0)) do
+		if api.nvim_win_get_config(win).relative ~= "" then
+			card_line = api.nvim_buf_get_lines(api.nvim_win_get_buf(win), 0, 1, false)[1]
+		end
+	end
+	ok(card_line:find("spec_alpha", 1, true) ~= nil, "first window listed")
+	ok(card_line:find("spec_beta", 1, true) ~= nil, "second window listed")
+	ok(card_line:find("spec_alpha", 1, true) < card_line:find("spec_beta", 1, true), "listed in index order")
+
 	reveal.hide()
 	eq(float_count(), 0, "dismissed")
 	release_all()

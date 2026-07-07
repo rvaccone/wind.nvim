@@ -88,18 +88,21 @@ All keymaps work in normal and visual mode.
 ==============================================================================
 5. REVEAL                                                        *wind-reveal*
 
-Pressing a family trigger shows a number badge centered in every content
-window, instantly. Badges bloom in reading order and rest slightly
-translucent; any keypress dismisses them immediately and acts. The current
-window's badge is dimmed.
+Press a family trigger and hesitate: after `reveal.delay_ms` (default
+150ms) a number badge appears centered in every content window. Type at
+full speed and the badges never appear — guidance costs the fast path
+nothing. Badges bloom in reading order and rest slightly translucent; any
+keypress dismisses them immediately and acts. The current window's badge
+is dimmed.
 
-The breath trigger shows a card listing held breaths instead: `•` marks the
-last-visited breath, `~` means the layout has drifted from it.
+The breath trigger shows a card instead, listing every window of every
+held breath in index order: `•` marks the last-visited breath, `~` means
+the layout has drifted from it.
 
 `:Wind reveal` shows the badges on demand; they linger and dissolve.
-Set `reveal.animate = false` to disable all motion, or
-`reveal.enabled = false` to disable the overlay entirely (triggers still
-dispatch).
+Set `reveal.delay_ms = 0` for instant guidance, `reveal.animate = false`
+to disable all motion, or `reveal.enabled = false` to disable the overlay
+entirely (triggers still dispatch).
 
 Highlights: `WindRevealBadge`, `WindRevealBorder`, `WindRevealCurrent`.
 All are defined with defaults and can be overridden by colorschemes.
@@ -179,6 +182,7 @@ Defaults: >lua
         },
         reveal = {
             enabled = true,
+            delay_ms = 150,
             animate = true,
         },
         keymaps = {
