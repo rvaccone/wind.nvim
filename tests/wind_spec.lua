@@ -564,30 +564,60 @@ test("resize: smart dimension steps and equalize", function()
 	ok(math.abs(widths[1] - widths[2]) <= 1 and math.abs(widths[2] - widths[3]) <= 1, "equalized")
 end)
 
-test("breath cards render, list every window, and dismiss", function()
+test("breath cards render as columns and dismiss", function()
 	release_all()
 	edit("spec_alpha")
 	wind.focus_or_create(9, "vsplit")
 	edit("spec_beta")
+	breath.hold()
+	wind.only()
 	breath.hold()
 
 	local reveal = require("wind.reveal")
 	reveal.show_breaths()
 	eq(float_count(), 1, "one card panel")
 
-	local card_line
+	local card_lines
 	for _, win in ipairs(api.nvim_tabpage_list_wins(0)) do
 		if api.nvim_win_get_config(win).relative ~= "" then
-			card_line = api.nvim_buf_get_lines(api.nvim_win_get_buf(win), 0, 1, false)[1]
+			card_lines = api.nvim_buf_get_lines(api.nvim_win_get_buf(win), 0, -1, false)
 		end
 	end
-	ok(card_line:find("spec_alpha", 1, true) ~= nil, "first window listed")
-	ok(card_line:find("spec_beta", 1, true) ~= nil, "second window listed")
-	ok(card_line:find("spec_alpha", 1, true) < card_line:find("spec_beta", 1, true), "listed in index order")
+	ok(card_lines[1]:find("1", 1, true) ~= nil and card_lines[1]:find("2", 1, true) ~= nil, "header row numbers")
+	ok(card_lines[2]:find("spec_alpha", 1, true) ~= nil, "first window on the first file row")
+	ok(card_lines[3]:find("spec_beta", 1, true) ~= nil, "second window on the second file row")
+	ok(card_lines[2]:find("spec_beta", 1, true) ~= nil, "breath 2's single window beside breath 1's first")
 
 	reveal.hide()
 	eq(float_count(), 0, "dismissed")
 	release_all()
+end)
+
+test("returning to an unheld breath holds the current layout", function()
+	release_all()
+	edit("spec_a")
+	breath.return_to(3)
+	eq(#breath.entries(), 1, "held as the next breath")
+	eq(breath.last_visited(), 1, "and visited")
+
+	wind.focus_or_create(9, "vsplit")
+	breath.return_to(7)
+	eq(#breath.entries(), 2, "held as breath 2")
+	eq(breath.last_visited(), 2, "and visited")
+	release_all()
+end)
+
+test("lualine component reports the drawn window's index", function()
+	edit("spec_a")
+	wind.focus_or_create(9, "vsplit")
+	local windows = engine.list()
+
+	vim.g.statusline_winid = windows[1]
+	eq(wind.lualine_index(), "1", "inactive window index")
+	vim.g.statusline_winid = windows[2]
+	eq(wind.lualine_index(), "2", "active window index")
+	vim.g.statusline_winid = nil
+	eq(wind.lualine_index(), "2", "falls back to the current window")
 end)
 
 print(("\nwind: %d passed, %d failed"):format(passed, failed))

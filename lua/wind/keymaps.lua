@@ -19,9 +19,11 @@ local function guided(dispatch, show)
 	local count = vim.v.count1
 	local reveal = require("wind.reveal")
 
+	-- Continuity: if a bare-prefix reveal was just on screen, keep guiding
+	-- without a fresh delay instead of flickering out and back in.
 	local delay = config.get().reveal.delay_ms
 	local pending
-	if delay > 0 then
+	if delay > 0 and not reveal.recently_visible() then
 		pending = vim.defer_fn(show, delay)
 	else
 		show()

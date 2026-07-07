@@ -123,4 +123,12 @@ M.index_of = function(win)
 	return require("wind.engine").index_of(win)
 end
 
+--- Statusline/lualine component: the index of the window being drawn.
+--- Works for active and inactive windows alike.
+M.lualine_index = function()
+	local win = tonumber(vim.g.statusline_winid) or vim.api.nvim_get_current_win()
+	local index = require("wind.engine").index_of(win)
+	return index and tostring(index) or ""
+end
+
 return M

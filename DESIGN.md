@@ -112,17 +112,32 @@ are both idiomatic and precise: hold / return / release.
 - Focus digits (`<leader>1–9`) stay pure native mappings — the reflex path
   has zero added latency and never shows UI. `:Wind reveal` shows badges on
   demand with a vapor linger for orientation.
-- The bare prefix is deliberately **not** mapped: hijacking `<leader>`
-  would steal hesitation behavior from which-key and every other leader map
-  in a user's config. wind guides its own namespaces; which-key keeps the
-  rest.
-- Badge object: small rounded float, centered per window, single bold digit,
-  identical size everywhere. Current window's badge renders dim.
-- Gust motion: ~15ms stagger in index order; fade in ~140ms ease-out to a
-  resting `winblend` of 15 (vapor, slightly translucent); manual reveals
-  dissolve over ~300ms after a linger. `reveal.animate = false` disables all
-  motion. Dismissal on keypress is instant and unconditional, and every
-  animation tick redraws so badges paint inside the blocking dispatch loop.
+- The bare prefix is deliberately **not mapped — but it is observed**.
+  Mapping `<leader>` would steal it from which-key and every other leader
+  map in a user's config; instead a `vim.on_key` watcher arms on the bare
+  prefix and reveals after `delay_ms`. In setups where a plugin like
+  which-key consumes the prefix immediately (verified live), badges appear
+  right on time; without one they appear when the pending mapping resolves
+  — best-effort by design. Spatial badges and a which-key popup are
+  complementary: one shows where, the other shows what.
+- Continuity: a family trigger arriving while (or just after) a bare-prefix
+  reveal is on screen re-shows immediately instead of re-hesitating — no
+  flicker between the two guidance layers.
+- Badge object: small rounded float, centered per window, single bold
+  digit, identical size everywhere. Current window's badge renders dim.
+  **All highlights are pure default links** (`NormalFloat`, `FloatBorder`,
+  `Comment`) with bold layered via extmarks, so themes and transparent
+  backgrounds pass straight through — the overlay must look native to any
+  colorscheme, exactly like a which-key window.
+- The breath card is one panel, one **column per breath**: number on the
+  header row (`•` last visited, `~` drifted), each window's file beneath in
+  index order — the column doubles as a preview of what each digit will
+  address after returning.
+- Gust motion: ~15ms stagger in index order; fade in ~140ms ease-out to
+  fully settled; manual reveals dissolve over ~300ms after a linger.
+  `reveal.animate = false` disables all motion. Dismissal on keypress is
+  instant and unconditional, and every animation tick redraws so badges
+  paint inside the blocking dispatch loop.
 
 ### Actions & history
 
@@ -144,11 +159,13 @@ are both idiomatic and precise: hold / return / release.
   until you say otherwise.
 - **release(n)**: forget breath n. Verb + destination like the close-window
   family (`<leader>bd3`); also `:Wind release 3` for scripting.
-- **return(n) when breath n doesn't exist**: notify quietly, create nothing.
-  Unlike window creation (visible immediately, undoable), an implicitly held
-  breath is invisible state — a phantom that pollutes the reveal cards. With
-  `hold` on its own key, deliberate creation has a home; implicit creation
-  could only ever produce accidents.
+- **return(n) when breath n doesn't exist**: hold the current layout as the
+  next breath. Declaring a destination brings it into being — the same
+  idempotence as focusing a missing window — and holding is never
+  destructive; the honest notification names the number actually taken.
+  (Reversed from an earlier notify-only decision after real use: with the
+  card one hesitation away, an extra held breath is visible state, not a
+  phantom, and the symmetry with window creation wins.)
 - **alternate**: one register, set by jump-class actions (return, only,
   large undo jumps). Toggle swaps current ↔ alternate. Returning to the
   breath you are already on also bounces to the alternate.

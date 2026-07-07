@@ -91,21 +91,34 @@ All keymaps work in normal and visual mode.
 Press a family trigger and hesitate: after `reveal.delay_ms` (default
 150ms) a number badge appears centered in every content window. Type at
 full speed and the badges never appear — guidance costs the fast path
-nothing. Badges bloom in reading order and rest slightly translucent; any
-keypress dismisses them immediately and acts. The current window's badge
-is dimmed.
+nothing. Badges bloom in reading order; any keypress dismisses them
+immediately and acts. The current window's badge is dimmed.
 
-The breath trigger shows a card instead, listing every window of every
-held breath in index order: `•` marks the last-visited breath, `~` means
-the layout has drifted from it.
+Hesitating on the bare prefix also reveals. wind never maps the prefix
+itself — that would steal it from which-key and every other leader
+mapping — it only observes it. In setups where a plugin such as which-key
+consumes the prefix immediately, badges appear right at `delay_ms`;
+without one they appear when the pending mapping resolves. Spatial badges
+and a which-key popup are complementary.
+
+The breath trigger shows a card instead: one column per breath, the number
+on the header row (`•` last visited, `~` drifted) and each window's file
+beneath, in index order.
 
 `:Wind reveal` shows the badges on demand; they linger and dissolve.
 Set `reveal.delay_ms = 0` for instant guidance, `reveal.animate = false`
 to disable all motion, or `reveal.enabled = false` to disable the overlay
 entirely (triggers still dispatch).
 
-Highlights: `WindRevealBadge`, `WindRevealBorder`, `WindRevealCurrent`.
-All are defined with defaults and can be overridden by colorschemes.
+Highlights are pure default links so themes and transparent backgrounds
+pass straight through, like a which-key window:
+
+    WindRevealBadge    →  NormalFloat
+    WindRevealBorder   →  FloatBorder
+    WindRevealCurrent  →  Comment
+    WindRevealBold     →  bold, layered over the theme via extmarks
+
+Override any of them to restyle.
 
 ==============================================================================
 6. ZOOM                                                            *wind-zoom*
@@ -143,7 +156,10 @@ hold~
 return~
     Rebuild breath n in the current tabpage: same splits, same files, same
     cursor positions and focus, rebuilt around excluded windows. Returning
-    to the breath you are already on bounces to the alternate.
+    to the breath you are already on bounces to the alternate. Returning
+    to a breath that is not held pins the current layout as the next
+    breath instead — declaring a destination brings it into being, the
+    same way focusing a missing window creates one.
 
 update~
     Re-pin the last-visited breath to the current layout. Drift is
@@ -239,6 +255,8 @@ the buffer name.
 
     wind.index_of()           -- index of current window (or pass a win id)
     wind.list()               -- ordered content window ids
+    wind.lualine_index()      -- statusline component: index of the
+                              -- window being drawn (uses statusline_winid)
     wind.focus_or_create(n)   -- "vsplit" (default) or "split" second arg
     wind.move(n)  wind.swap(n)  wind.close(n)  wind.save_close(n)
     wind.only()   wind.zoom()   wind.equalize()

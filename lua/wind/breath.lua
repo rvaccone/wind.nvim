@@ -87,11 +87,14 @@ function M.toggle_alternate()
 	end)
 end
 
+--- Return to breath n. When it isn't held, hold the current layout as the
+--- next breath instead — declaring a destination brings it into being,
+--- exactly like window creation, and holding is never destructive.
 ---@param n integer
 function M.return_to(n)
 	local entry = held[n]
 	if not entry then
-		notify.info(("breath %d is not held"):format(n))
+		M.hold()
 		return
 	end
 

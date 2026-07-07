@@ -93,9 +93,20 @@ Press a trigger (`<leader>w`, `<leader>q`, …) and pause: a badge appears on
 every window after a slight hesitation (`reveal.delay_ms`, default 150ms);
 press a digit to act or anything else to cancel. Type at full speed and the
 badges never appear at all — guidance is for the moment you hesitate, never
-a cost on the moment you don't. Badges bloom in reading order, rest
-slightly translucent, and any keypress dismisses them immediately.
-`:Wind reveal` shows them on demand.
+a cost on the moment you don't. Badges bloom in reading order and any
+keypress dismisses them immediately. `:Wind reveal` shows them on demand.
+
+Hesitating on the bare prefix works too: wind never maps `<leader>` itself
+(that would steal it from which-key and every other leader mapping), it
+only _observes_ it. In setups where a plugin like which-key consumes the
+prefix immediately, badges appear right at `delay_ms` — spatial badges and
+a which-key popup are complementary, not rivals.
+
+The overlay inherits your colorscheme: every highlight is a default link
+(`WindRevealBadge → NormalFloat`, `WindRevealBorder → FloatBorder`,
+`WindRevealCurrent → Comment`), so themes and transparent backgrounds pass
+straight through, exactly like a which-key window. Override the `WindReveal*`
+groups to restyle.
 
 Closing can never quit Neovim and never discards changes. Creation places
 windows identically regardless of your `splitright` / `splitbelow` settings.
@@ -124,16 +135,19 @@ A breath is a held layout — fleeting by nature, kept only because you chose
 to hold it.
 
 1. Arrange windows for the task at hand.
-2. `<leader>bn` holds it as breath n.
+2. `<leader>bn` holds it as the next breath — or just declare a destination:
+   `<leader>b2` when breath 2 doesn't exist holds the current layout, the
+   same way focusing a missing window creates one.
 3. Tear everything down, work elsewhere.
 4. `<leader>b2` rebuilds breath 2: same splits, same files, same cursor
    positions, rebuilt around your sidebars.
 
 `<leader>bb` re-pins the last-visited breath to the current layout, and
 `` <leader>b` `` bounces between the current layout and the one you last
-jumped away from. `<leader>b` alone shows a card listing every window of
-every held breath, in index order —
-`•` marks the breath you're on, `~` means you've drifted from it.
+jumped away from. Hesitating on `<leader>b` shows the breath card: one
+column per breath — the number on top (`•` the breath you're on, `~` means
+you've drifted from it) and each window's file beneath, in index order, so
+the column doubles as a preview of what each digit will address.
 
 Breaths record file paths, not buffer handles, so they restore cleanly even
 after buffers close. Releasing a breath shifts the numbers down, exactly
@@ -203,6 +217,26 @@ Excluded windows (file trees and friends) are invisible to wind: never
 indexed, never closed by `only`, never captured in breaths. Floating
 windows are always invisible.
 
+## Statusline
+
+`wind.lualine_index()` returns the index of the window being drawn — active
+or inactive — so every window can wear its number:
+
+```lua
+local function wind_index()
+    local ok, wind = pcall(require, "wind")
+    return ok and wind.lualine_index() or ""
+end
+
+require("lualine").setup({
+    sections = { lualine_a = { wind_index } },
+    inactive_sections = { lualine_a = { wind_index } },
+})
+```
+
+The same function works in a plain `'statusline'` expression via
+`v:lua` — it reads `g:statusline_winid`, so it is correct per window.
+
 ## API
 
 ```lua
@@ -210,6 +244,7 @@ local wind = require("wind")
 
 wind.index_of()          -- index of the current window (or pass a win id)
 wind.list()              -- ordered content windows
+wind.lualine_index()     -- statusline component: index of the drawn window
 wind.focus_or_create(n)  -- everything the keymaps do is callable
 wind.undo() / wind.redo()
 wind.hold() / wind.return_to(n)
