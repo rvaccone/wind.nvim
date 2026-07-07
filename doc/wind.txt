@@ -81,6 +81,7 @@ acts, a known verb acts, anything else cancels.
     <leader>b  b       Update the last-visited breath
     <leader>b  n       Hold a new breath
     <leader>b  d       Release the current breath
+    <leader>b  c       Clear all breaths
     <leader>b  `       Alternate: toggle current and previous layout
 
 All keymaps work in normal and visual mode.
@@ -175,15 +176,30 @@ release~
     so update and the alternate toggle always have a target. Release by
     number with `:Wind release {n}`.
 
+clear~
+    Forget every breath and hold the current layout as breath 1, the same
+    state a fresh session starts in.
+
 alternate~
     One register holding the layout you last jumped away from. Jump-class
     actions (return, only, alternate itself) set it.
+
+persistence~
+    Breaths are saved per project (one file per working directory under
+    `stdpath("data")/wind/`) on every change, and loaded the next time
+    Neovim opens in the same directory. Nothing is applied automatically:
+    loaded breaths are available, not restored. History and the alternate
+    register never persist; they are session state. A malformed store is
+    discarded whole. When two Neovim instances share a project, the last
+    writer wins. Set `breaths.persist = false` to keep breaths in memory
+    only, or `breaths.clear_on_start = true` to begin every session with a
+    clean slate.
 
 Breaths record file paths, cursor positions, and fractional geometry —
 never buffer handles — so they restore cleanly after buffers close and
 terminal resizes. Window-local options and manual folds are not captured.
 Breath 1 is held automatically when the session enters (see
-`breaths.auto_hold_first`).
+`breaths.auto_hold_first`); this is skipped when persisted breaths load.
 
 ==============================================================================
 9. CONFIGURATION                                          *wind-configuration*
@@ -203,6 +219,8 @@ Defaults: >lua
         breaths = {
             max = 9,
             auto_hold_first = true,
+            persist = true,
+            clear_on_start = false,
         },
         reveal = {
             enabled = true,
@@ -230,6 +248,7 @@ Defaults: >lua
                 update = "b",
                 hold = "n",
                 release = "d",
+                clear = "c",
                 alternate = "`",
             },
         },
@@ -252,6 +271,7 @@ the buffer name.
 :Wind breaths           Show the breath card.
 :Wind history           Echo recent layout actions; `›` marks the pointer.
 :Wind release {n}       Release breath n.
+:Wind clear             Clear all breaths.
 
 `:checkhealth wind` reports version, configuration, and index status.
 

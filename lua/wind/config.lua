@@ -17,6 +17,8 @@ local M = {}
 ---@class WindBreathsConfig
 ---@field max? integer Maximum held breaths (1-9, never above 9)
 ---@field auto_hold_first? boolean Hold breath 1 from the initial layout
+---@field persist? boolean Save breaths per project and load them at startup
+---@field clear_on_start? boolean Start every session with no breaths
 
 ---@class WindRevealConfig
 ---@field enabled? boolean
@@ -42,6 +44,7 @@ local M = {}
 ---@field update? string|false
 ---@field hold? string|false
 ---@field release? string|false
+---@field clear? string|false
 ---@field alternate? string|false
 
 ---@class WindKeymaps
@@ -74,6 +77,7 @@ local M = {}
 ---@field update string|false
 ---@field hold string|false
 ---@field release string|false
+---@field clear string|false
 ---@field alternate string|false
 
 ---@class WindResolvedKeymaps
@@ -83,7 +87,7 @@ local M = {}
 
 ---@class WindResolvedConfig
 ---@field windows { max: integer, flow: { horizontal: "right"|"left", vertical: "below"|"above" }, excluded: { filetypes: string[], bufnames: string[] }, notify: boolean }
----@field breaths { max: integer, auto_hold_first: boolean }
+---@field breaths { max: integer, auto_hold_first: boolean, persist: boolean, clear_on_start: boolean }
 ---@field reveal { enabled: boolean, delay_ms: integer, animate: boolean }
 ---@field keymaps WindResolvedKeymaps|false
 
@@ -101,6 +105,8 @@ M.defaults = {
 	breaths = {
 		max = 9,
 		auto_hold_first = true,
+		persist = true,
+		clear_on_start = false,
 	},
 	reveal = {
 		enabled = true,
@@ -128,6 +134,7 @@ M.defaults = {
 			update = "b",
 			hold = "n",
 			release = "d",
+			clear = "c",
 			alternate = "`",
 		},
 	},
@@ -224,9 +231,11 @@ local function validate(config)
 	check_string_list("windows.excluded.bufnames", windows.excluded.bufnames)
 
 	local breaths = config.breaths
-	check_keys("breaths", breaths, { max = true, auto_hold_first = true })
+	check_keys("breaths", breaths, { max = true, auto_hold_first = true, persist = true, clear_on_start = true })
 	check_max("breaths.max", breaths.max)
 	check_type("breaths.auto_hold_first", breaths.auto_hold_first, "boolean")
+	check_type("breaths.persist", breaths.persist, "boolean")
+	check_type("breaths.clear_on_start", breaths.clear_on_start, "boolean")
 
 	local reveal = config.reveal
 	check_keys("reveal", reveal, { enabled = true, delay_ms = true, animate = true })
@@ -286,10 +295,10 @@ local function validate(config)
 	check_keys(
 		"keymaps.breath",
 		breath,
-		{ namespace = true, update = true, hold = true, release = true, alternate = true }
+		{ namespace = true, update = true, hold = true, release = true, clear = true, alternate = true }
 	)
 	check_key_char("keymaps.breath.namespace", breath.namespace, false)
-	for _, field in ipairs({ "update", "hold", "release", "alternate" }) do
+	for _, field in ipairs({ "update", "hold", "release", "clear", "alternate" }) do
 		check_key_char("keymaps.breath." .. field, breath[field], true)
 	end
 
@@ -302,7 +311,7 @@ local function validate(config)
 		["breath.namespace"] = breath.namespace,
 	}, { "window.namespace", "window.stacked", "window.close", "window.save_close", "breath.namespace" })
 	check_distinct("keymaps.window", window, { "swap", "only", "zoom", "undo", "redo", "equalize", "grow", "shrink" })
-	check_distinct("keymaps.breath", breath, { "update", "hold", "release", "alternate" })
+	check_distinct("keymaps.breath", breath, { "update", "hold", "release", "clear", "alternate" })
 end
 
 ---@param opts WindConfig|nil

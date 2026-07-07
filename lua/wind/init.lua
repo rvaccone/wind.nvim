@@ -36,6 +36,9 @@ local subcommands = {
 		end
 		require("wind.breath").release(index)
 	end,
+	clear = function()
+		require("wind.breath").clear()
+	end,
 }
 
 ---@param opts WindConfig|nil
@@ -110,6 +113,9 @@ M.return_to = function(n)
 end
 M.release = function(n)
 	require("wind.breath").release(n)
+end
+M.clear = function()
+	require("wind.breath").clear()
 end
 M.alternate = function()
 	require("wind.breath").toggle_alternate()

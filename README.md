@@ -83,6 +83,8 @@ Here is the default configuration:
     breaths = {
         max = 9,
         auto_hold_first = true,
+        persist = true,
+        clear_on_start = false,
     },
 
     reveal = {
@@ -112,6 +114,7 @@ Here is the default configuration:
             update = "b",
             hold = "n",
             release = "d",
+            clear = "c",
             alternate = "`",
         },
     },
@@ -156,6 +159,7 @@ here are some quick tips:
 | `<leader>bb`        | Update the last visited breath                 |
 | `<leader>bn`        | Hold a new breath                              |
 | `<leader>bd`        | Release the current breath                     |
+| `<leader>bc`        | Clear all breaths                              |
 | `` <leader>b` ``    | Toggle between the current and previous layout |
 
 All keymaps work in normal and visual modes. Undo, redo, grow, and shrink
@@ -210,13 +214,22 @@ positions around your excluded windows.
 - `<leader>bb` updates the last visited breath to match the current layout.
 - `<leader>bd` releases the current breath. Numbers shift down, and the
   last remaining breath cannot be released.
+- `<leader>bc` clears all breaths and holds the current layout as breath 1,
+  the same state a fresh session starts in.
 - `` <leader>b` `` toggles between the current layout and the previous one.
 - Hesitating on `<leader>b` shows a card with one column per breath: the
   number on top and each window's file below it.
 
-Breath 1 is held automatically when Neovim starts. Breaths record file
-paths instead of buffer handles, so they restore correctly even after
-buffers close.
+Breaths persist per project. They are saved on every change and loaded the
+next time you open Neovim in the same directory, so opening a project
+brings back its layouts. Nothing is applied automatically: loaded breaths
+are available, not restored. Set `persist = false` to keep breaths in
+memory only, or `clear_on_start = true` to begin every session with a
+clean slate.
+
+Breath 1 is held automatically when Neovim starts (skipped when persisted
+breaths load). Breaths record file paths instead of buffer handles, so
+they restore correctly even after buffers close.
 
 ## Statusline
 
@@ -237,8 +250,8 @@ require("lualine").setup({
 
 ## Commands
 
-`:Wind reveal`, `:Wind breaths`, `:Wind history`, `:Wind release <n>`, and
-`:checkhealth wind`.
+`:Wind reveal`, `:Wind breaths`, `:Wind history`, `:Wind release <n>`,
+`:Wind clear`, and `:checkhealth wind`.
 
 See [DESIGN.md](DESIGN.md) for the design principles behind the plugin.
 

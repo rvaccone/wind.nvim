@@ -172,11 +172,27 @@ are both idiomatic and precise: hold / return / release.
   (Reversed from an earlier notify-only decision after real use: with the
   card one hesitation away, an extra held breath is visible state, not a
   phantom, and the symmetry with window creation wins.)
+- **clear**: `<leader>bc` forgets every breath and holds the present as
+  breath 1 — the same state a fresh session starts in, so both kinds of
+  "starting over" behave identically. `breaths.clear_on_start` applies the
+  same reset automatically at startup for anyone who wants pure vapor.
 - **alternate**: one register, set by jump-class actions (return, only,
   large undo jumps). Toggle swaps current ↔ alternate. Returning to the
   breath you are already on also bounces to the alternate.
 - Session starts with **breath 1 auto-held** from the initial layout, so
-  `update` and the alternate toggle always have a target.
+  `update` and the alternate toggle always have a target. Skipped when
+  persisted breaths load: the session resumes rather than restarts.
+- **Persistence**: breaths are saved per project (one JSON file per cwd
+  under `stdpath("data")/wind/`, version-stamped), write-through on every
+  mutation, loaded at setup. The boundaries that keep it inside the
+  philosophy: loaded breaths are **available, never applied** (wind is not
+  a session manager); only `held` and `last_visited` persist — history and
+  the alternate are session state by nature; a malformed store is
+  discarded whole; concurrent instances are last-writer-wins, accepted.
+  Fleetingness lives in how cheaply a breath is released, not in forced
+  evaporation.
+- Breath verbs that capture (hold, update, clear) **exit the lens first**
+  — the lens is a view, and what gets held is the layout beneath it.
 - Breath numbers are **dense**: releasing one shifts the rest down, exactly
   like windows. Between releases a breath keeps its number, and the reveal
   cards (`•` last visited, `~` drifted) bridge the gap between an invisible
@@ -269,6 +285,8 @@ not destination), send-window-to-set (modify the present, update the breath).
   },
   breaths = {
     auto_hold_first = true,
+    persist = true,              -- per project; available, never applied
+    clear_on_start = false,
   },
   keymaps = { ... },               -- any entry: string|false; table: false disables all
 }
@@ -288,6 +306,7 @@ lua/wind/
   actions.lua     -- THE dispatcher: Action records, history, undo/redo
   snapshot.lua    -- layout serialize/restore (winlayout tree walk)
   breath.lua      -- held states, alternate register, drift
+  persist.lua     -- per-project breath store (JSON, versioned, validated)
   reveal.lua      -- badges, gust animation, vapor dissolve
   zoom.lua        -- lens state machine, structural lockout
   resize.lua      -- grow/shrink submode, equalize
@@ -336,8 +355,13 @@ terminal resizes and the presence/absence of excluded side windows.
 
 ## Open questions
 
-- Cross-session breath persistence (serialize to disk per project) — v1.x,
-  not v1.0.
+None. Everything below was once open and is now decided.
+
+Resolved for v1.1.0: breaths persist per project (see the Breaths section
+for the boundaries), uniformly — no second tier of "persistent" breaths,
+because durability is not a property a user should classify at hold time,
+and evaporation was never protecting anything the cap, the card, and cheap
+release don't already handle.
 
 Resolved for v1.0.0: swap survives, demoted into the window namespace
 (`<leader>wx` + digit) — the root prefix keeps only the daily families.

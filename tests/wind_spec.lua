@@ -84,6 +84,7 @@ end)
 
 local test_config = {
 	windows = { notify = false },
+	breaths = { persist = false },
 	reveal = { animate = false },
 }
 require("wind").setup(vim.deepcopy(test_config))
@@ -593,6 +594,97 @@ test("breath cards render as columns and dismiss", function()
 	reveal.hide()
 	eq(float_count(), 0, "dismissed")
 	release_all()
+end)
+
+test("config: validates persistence options", function()
+	local invalid = {
+		breaths = {
+			persist = "yes" --[[@as any]],
+		},
+	}
+	ok(not pcall(require("wind.config").setup, invalid), "persist must be a boolean")
+	ok(not pcall(require("wind.config").setup, { keymaps = { breath = { clear = "b" } } }), "clear = update must fail")
+end)
+
+test("breaths persist across a restart", function()
+	local persist = require("wind.persist")
+	persist._reset(fn.tempname())
+
+	with_config({ breaths = { persist = true } }, function()
+		release_all()
+		local path_a = tempfile({ "a" })
+		local path_b = tempfile({ "b" })
+
+		edit(path_a)
+		breath.hold()
+		wind.focus_or_create(9, "vsplit")
+		edit(path_b)
+		breath.hold()
+
+		breath.reset()
+		eq(#breath.entries(), 0, "memory gone, as after a restart")
+
+		require("wind.breath").setup()
+		eq(#breath.entries(), 2, "breaths loaded from disk")
+		eq(breath.last_visited(), 2, "last visited restored")
+
+		breath.return_to(1)
+		eq(#engine.list(), 1, "a persisted breath restores its layout")
+
+		fn.delete(path_a)
+		fn.delete(path_b)
+	end)
+	release_all()
+	persist._reset(nil)
+end)
+
+test("a corrupt store is ignored", function()
+	local persist = require("wind.persist")
+	persist._reset(fn.tempname())
+	fn.mkdir(fn.fnamemodify(persist._path(), ":h"), "p")
+	fn.writefile({ "{ not json" }, persist._path())
+
+	with_config({ breaths = { persist = true } }, function()
+		release_all()
+		require("wind.breath").setup()
+		eq(#breath.entries(), 0, "corrupt store discarded, no error")
+	end)
+	persist._reset(nil)
+end)
+
+test("clear forgets everything and holds the present", function()
+	release_all()
+	edit("spec_a")
+	breath.hold()
+	wind.focus_or_create(9, "vsplit")
+	breath.hold()
+	eq(#breath.entries(), 2, "two held")
+
+	breath.clear()
+	eq(#breath.entries(), 1, "cleared down to the present")
+	eq(breath.last_visited(), 1, "the current layout became breath 1")
+	eq(breath.drifted(), false, "and it matches the screen")
+	release_all()
+end)
+
+test("clear_on_start wipes the persisted store", function()
+	local persist = require("wind.persist")
+	persist._reset(fn.tempname())
+
+	with_config({ breaths = { persist = true } }, function()
+		release_all()
+		edit("spec_a")
+		breath.hold()
+	end)
+	ok(persist.load() ~= nil, "store written")
+
+	with_config({ breaths = { persist = true, clear_on_start = true } }, function()
+		require("wind.breath").setup()
+		eq(#breath.entries(), 0, "session starts clean")
+		ok(persist.load() == nil, "store wiped")
+	end)
+	release_all()
+	persist._reset(nil)
 end)
 
 test("the last breath cannot be released", function()

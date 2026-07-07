@@ -41,8 +41,16 @@ function M.set_alternate()
 	alternate = snapshot.capture()
 end
 
+local function save()
+	if config.get().breaths.persist then
+		require("wind.persist").save(held, last_visited)
+	end
+end
+
 ---@param opts? { silent?: boolean }
 function M.hold(opts)
+	-- The lens is a view; the layout beneath it is what gets held.
+	require("wind.zoom").exit()
 	local max = config.get().breaths.max
 	if #held >= max then
 		notify.info(("All %d breaths are held, release one first"):format(max))
@@ -57,9 +65,11 @@ function M.hold(opts)
 	if not (opts and opts.silent) then
 		notify.info(("Held breath %d"):format(#held))
 	end
+	save()
 end
 
 function M.update()
+	require("wind.zoom").exit()
 	local entry = last_visited and held[last_visited]
 	if not entry then
 		notify.info("No breath to update, hold one first")
@@ -71,6 +81,7 @@ function M.update()
 	end
 	entry.snapshot = captured
 	notify.info(("Breath %d updated"):format(last_visited))
+	save()
 end
 
 --- Toggle between the current layout and the one last jumped away from.
@@ -110,6 +121,7 @@ function M.return_to(n)
 		snapshot.restore(entry.snapshot)
 	end)
 	last_visited = n
+	save()
 end
 
 --- Release breath n. Numbers shift down, exactly like windows. The last
@@ -134,6 +146,7 @@ function M.release(n)
 		end
 	end
 	notify.info(("Released breath %d"):format(n))
+	save()
 end
 
 --- Release the breath you are on. Targeted release stays on
@@ -146,17 +159,44 @@ function M.release_current()
 	M.release(last_visited)
 end
 
---- Test hook: forget everything.
+--- Forget every breath and hold the present as breath 1, mirroring what a
+--- fresh session does.
+function M.clear()
+	require("wind.zoom").exit()
+	held = {}
+	last_visited = nil
+	M.hold({ silent = true })
+	notify.info("Cleared all breaths")
+	save()
+end
+
+--- Test hook: forget everything, touching no files.
 function M.reset()
 	held = {}
 	last_visited = nil
 	alternate = nil
 end
 
---- Hold breath 1 from the initial layout so update and the alternate
---- toggle always have a target.
+--- Load the project's breaths, or start clean, then make sure breath 1
+--- exists so update and the alternate toggle always have a target.
 function M.setup()
-	if not config.get().breaths.auto_hold_first then
+	local breaths_config = config.get().breaths
+
+	if breaths_config.clear_on_start then
+		held = {}
+		last_visited = nil
+		if breaths_config.persist then
+			require("wind.persist").wipe()
+		end
+	elseif breaths_config.persist then
+		local loaded = require("wind.persist").load()
+		if loaded then
+			held = loaded.held
+			last_visited = loaded.last_visited
+		end
+	end
+
+	if not breaths_config.auto_hold_first then
 		return
 	end
 	local function first_hold()

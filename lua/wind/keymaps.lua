@@ -234,6 +234,9 @@ function M.setup()
 	if breath_keys.release then
 		breath_verbs[breath_keys.release] = breath.release_current
 	end
+	if breath_keys.clear then
+		breath_verbs[breath_keys.clear] = breath.clear
+	end
 	family(
 		prefix .. breath_keys.namespace,
 		digits(breath_max, breath.return_to, breath_verbs),
