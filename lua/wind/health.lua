@@ -29,6 +29,8 @@ function M.check()
 
 	local windows = require("wind.engine").list()
 	health.info(("%d content window(s) currently indexed"):format(#windows))
+	health.info(("%d breath(s) held"):format(#require("wind.breath").entries()))
+	health.info(("%d layout action(s) in this tabpage's history"):format(#require("wind.actions").history()))
 end
 
 return M

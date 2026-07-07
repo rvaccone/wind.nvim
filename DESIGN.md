@@ -126,7 +126,8 @@ are both idiomatic and precise: hold / return / release.
 
 - Every mutation constructs an Action: `{ type, params, before, after }`
   where `before`/`after` are lightweight layout snapshots.
-- One history per session (per tabpage initially — see Open Questions).
+- One history per tabpage, capped at 100 entries, walked by a pointer;
+  a new action truncates the redo tail.
 - `undo` / `redo` walk it, count-aware (`3<undo>`). They rearrange frames
   and re-show buffers; they never write, close, or edit a buffer.
 - The scratch pattern is the acceptance test: create a window, glance,
@@ -134,7 +135,7 @@ are both idiomatic and precise: hold / return / release.
 
 ### Breaths
 
-- **hold**: pin the current layout as a breath (lowest free number 1–9).
+- **hold**: pin the current layout as the next breath number (1–9).
 - **return(n)**: apply breath n. The layout you left becomes the alternate.
 - **update**: re-pin the **last-visited** breath to the current layout
   (`commit -a` for layouts). Explicit, one keymap — drift is deliberate
@@ -151,14 +152,14 @@ are both idiomatic and precise: hold / return / release.
   breath you are already on also bounces to the alternate.
 - Session starts with **breath 1 auto-held** from the initial layout, so
   `update` and the alternate toggle always have a target.
-- Breath numbers are **stable** (unlike geometric window numbers). This is
-  principled, not inconsistent: windows are labeled by the visible screen;
-  breaths are invisible when you're not in them, so they need stable names —
-  the reveal cards bridge the gap.
-- Snapshots record **file path + cursor + geometry** for content windows
-  only — never buffer handles. Restore re-`:edit`s paths; ephemeral buffers
-  (terminals, unnamed) are excluded by construction, so a breath can't
-  resurrect a corpse.
+- Breath numbers are **dense**: releasing one shifts the rest down, exactly
+  like windows. Between releases a breath keeps its number, and the reveal
+  cards (`•` last visited, `~` drifted) bridge the gap between an invisible
+  state and a glanceable one.
+- Snapshots record **file path + cursor + fractional geometry + focused
+  leaf** for content windows only — never buffer handles. Restore rebuilds
+  via `bufadd`/`nvim_win_set_buf`, which cannot abandon a modified buffer
+  the way `:edit` can under 'nohidden', so a restore never fails halfway.
 
 ### Zoom (the lens)
 
@@ -220,7 +221,10 @@ not destination), send-window-to-set (modify the present, update the breath).
     max = 9,                       -- ceiling; cannot exceed 9
     flow = { horizontal = "right", vertical = "below" },
     excluded = {
-      filetypes = { "help", "neo-tree", "notify" },
+      -- Only tree-style chrome is invisible by default. Help, quickfix,
+      -- and notify windows are real destinations and stay indexed;
+      -- floating windows are always invisible structurally.
+      filetypes = { "neo-tree", "NvimTree", "netrw" },
       bufnames = {},               -- Lua patterns
     },
     notify = true,
@@ -299,7 +303,11 @@ terminal resizes and the presence/absence of excluded side windows.
 ## Open questions
 
 - Does `swap` survive dogfooding once `move` exists?
-- History scope: per tabpage or global? (Leaning per tabpage; zoom is the
-  only tab consumer today and it's excluded from indexing.)
 - Cross-session breath persistence (serialize to disk per project) — v1.x,
   not v1.0.
+
+Resolved during implementation: history is per tabpage; snapshots capture
+the focused leaf so returns restore focus; restore uses `bufadd` +
+`nvim_win_set_buf` rather than `:edit` so it cannot fail halfway under
+'nohidden'; reveal guidance runs as trigger-mapping dispatch loops because
+pending native mappings are invisible to `vim.on_key`.

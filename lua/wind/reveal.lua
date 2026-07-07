@@ -225,6 +225,89 @@ function M.show(opts)
 	end
 end
 
+---@param node WindSnapshotNode
+---@return string
+local function breath_label(node)
+	local names = {}
+	local function walk(n)
+		if n[1] == "leaf" then
+			local tail = vim.fn.fnamemodify(n[2].path, ":t")
+			names[#names + 1] = tail ~= "" and tail or "[empty]"
+			return
+		end
+		for _, child in ipairs(n[2]) do
+			walk(child)
+		end
+	end
+	walk(node)
+	local label = names[1] or "[empty]"
+	if #names > 1 then
+		label = ("%s +%d"):format(label, #names - 1)
+	end
+	return label
+end
+
+--- One centered panel: number, marker (• last visited, ~ drifted), files.
+function M.show_breaths()
+	local reveal_config = config.get().reveal
+	if not reveal_config.enabled then
+		return
+	end
+
+	M.hide()
+	local breath = require("wind.breath")
+	local entries = breath.entries()
+
+	local lines = {}
+	if #entries == 0 then
+		lines[1] = " no breaths held "
+	else
+		local last = breath.last_visited()
+		local drifted = breath.drifted()
+		for n, entry in ipairs(entries) do
+			local marker = " "
+			if n == last then
+				marker = drifted and "~" or "•"
+			end
+			lines[n] = (" %d %s %s "):format(n, marker, breath_label(entry.snapshot))
+		end
+	end
+
+	local width = 0
+	for _, line in ipairs(lines) do
+		width = math.max(width, api.nvim_strwidth(line))
+	end
+
+	local buf = api.nvim_create_buf(false, true)
+	vim.bo[buf].bufhidden = "wipe"
+	api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+
+	local animate = reveal_config.animate
+	local win = api.nvim_open_win(buf, false, {
+		relative = "editor",
+		row = math.max(0, math.floor((vim.o.lines - #lines) / 2) - 1),
+		col = math.max(0, math.floor((vim.o.columns - width) / 2)),
+		width = width,
+		height = #lines,
+		style = "minimal",
+		border = "rounded",
+		focusable = false,
+		noautocmd = true,
+		zindex = 60,
+	})
+	api.nvim_set_option_value("winhighlight", "Normal:WindRevealBadge,FloatBorder:WindRevealBorder", { win = win })
+
+	local badge = { win = win, opened_at = uv.now(), blend = animate and 100 or REST_BLEND }
+	set_blend(badge, badge.blend)
+	badges[#badges + 1] = badge
+
+	if animate then
+		animate_in(generation)
+	else
+		vim.cmd("redraw")
+	end
+end
+
 function M.setup()
 	ensure_highlights()
 	api.nvim_create_autocmd("ColorScheme", {

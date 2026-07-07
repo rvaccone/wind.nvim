@@ -105,6 +105,13 @@ function M.toggle()
 	end
 end
 
+--- Leave the lens if it is active (breaths and tab changes use this).
+function M.exit()
+	if state then
+		exit()
+	end
+end
+
 --- Point the lens at window n without leaving the zoom.
 ---@param n integer
 function M.lens_focus(n)

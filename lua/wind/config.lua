@@ -92,7 +92,7 @@ M.defaults = {
 		max = 9,
 		flow = { horizontal = "right", vertical = "below" },
 		excluded = {
-			filetypes = { "help", "neo-tree", "notify" },
+			filetypes = { "neo-tree", "NvimTree", "netrw" },
 			bufnames = {},
 		},
 		notify = true,

@@ -223,6 +223,46 @@ function M.close(n, save)
 	end
 end
 
+--- Which axes the window can meaningfully resize on.
+---@param win integer
+---@return boolean horizontal, boolean vertical
+local function sibling_axes(win)
+	local horizontal, vertical = false, false
+	local function walk(node)
+		if node[1] == "leaf" then
+			return node[2] == win
+		end
+		for _, child in ipairs(node[2]) do
+			if walk(child) then
+				if #node[2] > 1 then
+					if node[1] == "row" then
+						horizontal = true
+					else
+						vertical = true
+					end
+				end
+				return true
+			end
+		end
+		return false
+	end
+	walk(fn.winlayout())
+	return horizontal, vertical
+end
+
+--- Nudge the current window in whichever dimensions have siblings.
+---@param kind "grow"|"shrink"
+function M.resize_step(kind)
+	local sign = kind == "grow" and 1 or -1
+	local horizontal, vertical = sibling_axes(api.nvim_get_current_win())
+	if horizontal then
+		vim.cmd(("vertical resize %+d"):format(sign * 3))
+	end
+	if vertical then
+		vim.cmd(("resize %+d"):format(sign * 2))
+	end
+end
+
 --- Close every content window except the current one.
 function M.only()
 	local current = api.nvim_get_current_win()

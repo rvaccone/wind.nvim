@@ -9,22 +9,36 @@ local M = {}
 
 local HISTORY_LIMIT = 100
 
----@type table<integer, { type: string, before: WindSnapshotNode|nil, after: WindSnapshotNode|nil }[]>
+---@class WindAction
+---@field type string
+---@field before WindSnapshotNode|nil
+---@field after WindSnapshotNode|nil
+
+---@type table<integer, { entries: WindAction[], pointer: integer }>
 local histories = {}
 
----@return { type: string, before: WindSnapshotNode|nil, after: WindSnapshotNode|nil }[]
-function M.history()
+local function history()
 	local tab = api.nvim_get_current_tabpage()
-	histories[tab] = histories[tab] or {}
+	histories[tab] = histories[tab] or { entries = {}, pointer = 0 }
 	return histories[tab]
 end
 
+---@return WindAction[]
+function M.history()
+	return history().entries
+end
+
+---@return integer
+function M.history_pointer()
+	return history().pointer
+end
+
 --- Run a structural mutation and record it. Every layout change in the
---- plugin flows through here — history and drift depend on it.
+--- plugin flows through here — history, undo, and drift depend on it.
 ---@param kind string
 ---@param mutate fun()
 local function record(kind, mutate)
-	local history = M.history()
+	local h = history()
 	local before = snapshot.capture()
 
 	local ok, err = pcall(mutate)
@@ -33,10 +47,21 @@ local function record(kind, mutate)
 		return
 	end
 
-	history[#history + 1] = { type = kind, before = before, after = snapshot.capture() }
-	if #history > HISTORY_LIMIT then
-		table.remove(history, 1)
+	for i = #h.entries, h.pointer + 1, -1 do
+		h.entries[i] = nil
 	end
+	h.entries[#h.entries + 1] = { type = kind, before = before, after = snapshot.capture() }
+	if #h.entries > HISTORY_LIMIT then
+		table.remove(h.entries, 1)
+	end
+	h.pointer = #h.entries
+end
+
+--- Breaths record their jumps through the same dispatcher.
+---@param kind string
+---@param mutate fun()
+function M.record_jump(kind, mutate)
+	record(kind, mutate)
 end
 
 ---@return boolean
@@ -117,9 +142,70 @@ function M.only()
 	if layout_locked() then
 		return
 	end
+	require("wind.breath").set_alternate()
 	record("only", function()
 		engine.only()
 	end)
+end
+
+--- Walk the layout history backward. Never touches buffer contents.
+---@param count? integer
+function M.undo(count)
+	if layout_locked() then
+		return
+	end
+	local h = history()
+	local remaining = math.max(1, count or 1)
+	local applied = 0
+	while remaining > 0 and h.pointer > 0 do
+		local entry = h.entries[h.pointer]
+		h.pointer = h.pointer - 1
+		if snapshot.restore(entry.before) then
+			applied = applied + 1
+		end
+		remaining = remaining - 1
+	end
+	if applied == 0 then
+		notify.info("nothing to undo")
+	end
+end
+
+---@param count? integer
+function M.redo(count)
+	if layout_locked() then
+		return
+	end
+	local h = history()
+	local remaining = math.max(1, count or 1)
+	local applied = 0
+	while remaining > 0 and h.pointer < #h.entries do
+		h.pointer = h.pointer + 1
+		if snapshot.restore(h.entries[h.pointer].after) then
+			applied = applied + 1
+		end
+		remaining = remaining - 1
+	end
+	if applied == 0 then
+		notify.info("nothing to redo")
+	end
+end
+
+function M.equalize()
+	if layout_locked() then
+		return
+	end
+	record("equalize", function()
+		vim.cmd("wincmd =")
+	end)
+end
+
+--- A whole grow/shrink session commits as one action.
+---@param session fun()
+function M.resize_session(session)
+	if layout_locked() then
+		return
+	end
+	record("resize", session)
 end
 
 function M.zoom()

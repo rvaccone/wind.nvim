@@ -349,6 +349,234 @@ test("reveal badges one float per window and dismisses instantly", function()
 	eq(float_count(), 0, "badges close instantly")
 end)
 
+local snapshot = require("wind.snapshot")
+local breath = require("wind.breath")
+
+local function release_all()
+	while #breath.entries() > 0 do
+		breath.release(1)
+	end
+end
+
+local function tempfile(lines)
+	local path = fn.resolve(fn.tempname())
+	fn.writefile(lines, path)
+	return path
+end
+
+test("breath 1 is auto-held when the session enters", function()
+	release_all()
+	edit("spec_first")
+	-- -c scripts run before VimEnter, so fire it explicitly.
+	api.nvim_exec_autocmds("VimEnter", {})
+	vim.wait(500, function()
+		return #breath.entries() == 1
+	end, 10)
+	eq(#breath.entries(), 1, "initial layout held as breath 1")
+	release_all()
+end)
+
+test("snapshot restore rebuilds structure, paths, cursors, and focus", function()
+	local path_a = tempfile({ "a1", "a2", "a3", "a4", "a5" })
+	local path_b = tempfile({ "b1", "b2", "b3" })
+	local path_c = tempfile({ "c1", "c2" })
+
+	edit(path_a)
+	api.nvim_win_set_cursor(0, { 5, 0 })
+	wind.focus_or_create(9, "vsplit")
+	edit(path_b)
+	api.nvim_win_set_cursor(0, { 3, 0 })
+	wind.focus_or_create(9, "split")
+	edit(path_c)
+	api.nvim_win_set_cursor(0, { 2, 0 })
+
+	local shot = snapshot.capture()
+	wind.only()
+	vim.cmd("silent enew")
+	eq(#engine.list(), 1, "layout mangled")
+
+	ok(snapshot.restore(shot), "restore succeeded")
+	local windows = engine.list()
+	eq(#windows, 3, "three windows rebuilt")
+
+	local names = {}
+	for i, win in ipairs(windows) do
+		names[i] = api.nvim_buf_get_name(api.nvim_win_get_buf(win))
+	end
+	eq(names, { path_a, path_b, path_c }, "paths in flow order")
+
+	eq(api.nvim_win_call(windows[1], fn.winsaveview).lnum, 5, "cursor restored in window 1")
+	eq(api.nvim_win_call(windows[2], fn.winsaveview).lnum, 3, "cursor restored in window 2")
+	eq(api.nvim_get_current_win(), windows[3], "focus returned to the captured window")
+
+	for _, path in ipairs({ path_a, path_b, path_c }) do
+		fn.delete(path)
+	end
+end)
+
+test("restore rebuilds around excluded windows", function()
+	edit("spec_a")
+	vim.cmd("leftabove vsplit")
+	vim.cmd("enew")
+	vim.bo.filetype = "neo-tree"
+	local tree = api.nvim_get_current_win()
+
+	wind.focus_or_create(1, "vsplit")
+	wind.focus_or_create(9, "vsplit")
+	edit("spec_b")
+
+	local shot = snapshot.capture()
+	wind.only()
+	ok(snapshot.restore(shot), "restore succeeded")
+
+	eq(#engine.list(), 2, "content windows rebuilt")
+	ok(api.nvim_win_is_valid(tree), "excluded window survived the restore")
+end)
+
+test("undo walks back and redo walks forward", function()
+	edit("spec_a")
+	wind.focus_or_create(9, "vsplit")
+	edit("spec_b")
+	eq(#engine.list(), 2, "created")
+
+	wind.undo()
+	eq(#engine.list(), 1, "create undone")
+
+	wind.redo()
+	eq(#engine.list(), 2, "create redone")
+end)
+
+test("undo restores a closed window with its file", function()
+	local path = tempfile({ "kept" })
+	edit("spec_a")
+	wind.focus_or_create(9, "vsplit")
+	edit(path)
+
+	wind.close(2)
+	eq(#engine.list(), 1, "closed")
+
+	wind.undo()
+	local windows = engine.list()
+	eq(#windows, 2, "window restored")
+	eq(api.nvim_buf_get_name(api.nvim_win_get_buf(windows[2])), path, "same file back at index 2")
+	fn.delete(path)
+end)
+
+test("undo is count-aware", function()
+	edit("spec_a")
+	wind.focus_or_create(9, "vsplit")
+	wind.focus_or_create(9, "vsplit")
+	eq(#engine.list(), 3, "two creates")
+
+	wind.undo(2)
+	eq(#engine.list(), 1, "both undone in one call")
+end)
+
+test("undo never touches buffer contents", function()
+	edit("spec_dirty")
+	api.nvim_buf_set_lines(0, 0, -1, false, { "unsaved work" })
+	local dirty = api.nvim_get_current_buf()
+
+	wind.focus_or_create(9, "vsplit")
+	wind.undo()
+
+	eq(#engine.list(), 1, "layout undone")
+	eq(api.nvim_buf_get_lines(dirty, 0, -1, false), { "unsaved work" }, "modified buffer untouched")
+	eq(vim.bo[dirty].modified, true, "still marked modified")
+end)
+
+test("move is undoable", function()
+	local a = edit("spec_a")
+	wind.focus_or_create(9, "vsplit")
+	local b = edit("spec_b")
+
+	wind.move(1)
+	local moved = engine.list()
+	eq(api.nvim_win_get_buf(moved[1]), b, "moved")
+
+	wind.undo()
+	local windows = engine.list()
+	eq(
+		{ vim.fn.bufname(api.nvim_win_get_buf(windows[1])), vim.fn.bufname(api.nvim_win_get_buf(windows[2])) },
+		{ vim.fn.bufname(a), vim.fn.bufname(b) },
+		"original order restored"
+	)
+end)
+
+test("breaths: hold, drift, update, return, alternate, shifting release", function()
+	release_all()
+	local path_a = tempfile({ "a" })
+	local path_b = tempfile({ "b" })
+
+	edit(path_a)
+	breath.hold()
+	eq(#breath.entries(), 1, "breath 1 held")
+	eq(breath.drifted(), false, "no drift yet")
+
+	wind.focus_or_create(9, "vsplit")
+	edit(path_b)
+	eq(breath.drifted(), true, "layout drifted from breath 1")
+
+	breath.hold()
+	eq(#breath.entries(), 2, "breath 2 held")
+	eq(breath.drifted(), false, "holding pins the current layout")
+
+	breath.return_to(1)
+	eq(#engine.list(), 1, "returned to the single-window breath")
+	eq(breath.last_visited(), 1, "last visited tracks the return")
+
+	breath.return_to(2)
+	eq(#engine.list(), 2, "returned to the two-window breath")
+
+	breath.toggle_alternate()
+	eq(#engine.list(), 1, "alternate bounces to the layout left behind")
+	breath.toggle_alternate()
+	eq(#engine.list(), 2, "and back")
+
+	breath.release(1)
+	eq(#breath.entries(), 1, "released")
+	eq(breath.last_visited(), 1, "numbers shifted — old breath 2 is now breath 1")
+	eq(breath.drifted(), false, "current layout matches the shifted breath")
+
+	release_all()
+	fn.delete(path_a)
+	fn.delete(path_b)
+end)
+
+test("resize: smart dimension steps and equalize", function()
+	edit("spec_a")
+	wind.focus_or_create(9, "vsplit")
+	wind.focus_or_create(9, "vsplit")
+	wind.focus_or_create(2, "vsplit")
+
+	local before = api.nvim_win_get_width(0)
+	engine.resize_step("grow")
+	eq(api.nvim_win_get_width(0), before + 3, "grow widens by one step")
+	engine.resize_step("shrink")
+	eq(api.nvim_win_get_width(0), before, "shrink reverses it")
+
+	engine.resize_step("grow")
+	wind.equalize()
+	local widths = {}
+	for i, win in ipairs(engine.list()) do
+		widths[i] = api.nvim_win_get_width(win)
+	end
+	ok(math.abs(widths[1] - widths[2]) <= 1 and math.abs(widths[2] - widths[3]) <= 1, "equalized")
+end)
+
+test("breath cards render and dismiss", function()
+	release_all()
+	edit("spec_a")
+	breath.hold()
+
+	local reveal = require("wind.reveal")
+	reveal.show_breaths()
+	eq(float_count(), 1, "one card panel")
+	reveal.hide()
+	eq(float_count(), 0, "dismissed")
+	release_all()
+end)
+
 print(("\nwind: %d passed, %d failed"):format(passed, failed))
 if failed > 0 then
 	print(table.concat(failures, "\n"))
