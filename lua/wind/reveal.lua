@@ -201,7 +201,11 @@ end
 function M.show(opts)
 	opts = opts or {}
 	local reveal_config = config.get().reveal
-	if not reveal_config.enabled or require("wind.zoom").active() then
+	if not reveal_config.enabled then
+		return
+	end
+	if require("wind.zoom").active() then
+		M.show_lens()
 		return
 	end
 
@@ -276,6 +280,75 @@ local function breath_files(node)
 	return names
 end
 
+--- Open one centered panel and register it with the badge machinery so
+--- fades, dismissal, and redraws behave exactly like window badges.
+---@param lines string[]
+---@param spans { [1]: integer, [2]: integer, [3]: integer }[] Bold ranges: row, start col, end col
+local function open_panel(lines, spans)
+	local max_width = math.max(20, vim.o.columns - 8)
+	local width = 0
+	for _, line in ipairs(lines) do
+		width = math.max(width, math.min(max_width, api.nvim_strwidth(line)))
+	end
+
+	local buf = api.nvim_create_buf(false, true)
+	vim.bo[buf].bufhidden = "wipe"
+	api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+	for _, span in ipairs(spans) do
+		bold(buf, span[1], span[2], span[3])
+	end
+
+	local animate = config.get().reveal.animate
+	local win = api.nvim_open_win(buf, false, {
+		relative = "editor",
+		row = math.max(0, math.floor((vim.o.lines - #lines) / 2) - 1),
+		col = math.max(0, math.floor((vim.o.columns - width) / 2)),
+		width = width,
+		height = #lines,
+		style = "minimal",
+		border = "rounded",
+		focusable = false,
+		noautocmd = true,
+		zindex = 60,
+	})
+	style_float(win)
+
+	local badge = { win = win, opened_at = uv.now(), blend = animate and 100 or 0 }
+	set_blend(badge, badge.blend)
+	badges[#badges + 1] = badge
+
+	if animate then
+		animate_in(generation)
+	else
+		vim.cmd("redraw")
+	end
+end
+
+--- The lens hides the layout, so digit navigation while zoomed gets a
+--- list instead of badges: index, marker for the lens target, filename.
+function M.show_lens()
+	if not config.get().reveal.enabled then
+		return
+	end
+
+	M.hide()
+	local entries = require("wind.zoom").lens_entries()
+	if #entries == 0 then
+		return
+	end
+
+	local lines = {}
+	local spans = {}
+	for row, entry in ipairs(entries) do
+		local marker = entry.current and "•" or " "
+		local digit = tostring(entry.index)
+		lines[row] = (" %s %s %s "):format(digit, marker, clamp_cell(entry.name))
+		spans[#spans + 1] = { row - 1, 1, 1 + #digit }
+	end
+
+	open_panel(lines, spans)
+end
+
 --- One panel, one column per breath: the header row is the number
 --- (`•` last visited, `~` drifted), each row beneath a window's file in
 --- index order — a preview of what each digit will address.
@@ -296,7 +369,7 @@ function M.show_breaths()
 	local header_spans = {}
 
 	if #entries == 0 then
-		lines = { " no breaths held " }
+		lines = { " No breaths held " }
 	else
 		local columns = {}
 		local rows = 0
@@ -326,7 +399,7 @@ function M.show_breaths()
 				if row == 0 then
 					local before = table.concat(cells, "  ")
 					local start_col = #(" " .. before) + (n > 1 and 2 or 0)
-					header_spans[#header_spans + 1] = { start_col, start_col + #text }
+					header_spans[#header_spans + 1] = { 0, start_col, start_col + #text }
 				end
 				cells[#cells + 1] = pad(text, column.width)
 			end
@@ -334,43 +407,7 @@ function M.show_breaths()
 		end
 	end
 
-	local max_width = math.max(20, vim.o.columns - 8)
-	local width = 0
-	for _, line in ipairs(lines) do
-		width = math.max(width, math.min(max_width, api.nvim_strwidth(line)))
-	end
-
-	local buf = api.nvim_create_buf(false, true)
-	vim.bo[buf].bufhidden = "wipe"
-	api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-	for _, span in ipairs(header_spans) do
-		bold(buf, 0, span[1], span[2])
-	end
-
-	local animate = reveal_config.animate
-	local win = api.nvim_open_win(buf, false, {
-		relative = "editor",
-		row = math.max(0, math.floor((vim.o.lines - #lines) / 2) - 1),
-		col = math.max(0, math.floor((vim.o.columns - width) / 2)),
-		width = width,
-		height = #lines,
-		style = "minimal",
-		border = "rounded",
-		focusable = false,
-		noautocmd = true,
-		zindex = 60,
-	})
-	style_float(win)
-
-	local badge = { win = win, opened_at = uv.now(), blend = animate and 100 or 0 }
-	set_blend(badge, badge.blend)
-	badges[#badges + 1] = badge
-
-	if animate then
-		animate_in(generation)
-	else
-		vim.cmd("redraw")
-	end
+	open_panel(lines, header_spans)
 end
 
 ---@return string
@@ -425,6 +462,10 @@ local function watch_bare_prefix()
 			end
 
 			if not in_normal_or_visual(api.nvim_get_mode().mode) then
+				return
+			end
+			-- Replayed keys must not summon guidance mid-macro.
+			if fn.reg_executing() ~= "" then
 				return
 			end
 

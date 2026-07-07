@@ -353,9 +353,7 @@ local snapshot = require("wind.snapshot")
 local breath = require("wind.breath")
 
 local function release_all()
-	while #breath.entries() > 0 do
-		breath.release(1)
-	end
+	breath.reset()
 end
 
 local function tempfile(lines)
@@ -591,6 +589,59 @@ test("breath cards render as columns and dismiss", function()
 	reveal.hide()
 	eq(float_count(), 0, "dismissed")
 	release_all()
+end)
+
+test("the last breath cannot be released", function()
+	release_all()
+	edit("spec_a")
+	breath.hold()
+	breath.release(1)
+	eq(#breath.entries(), 1, "last breath survives")
+	release_all()
+end)
+
+test("release_current releases the breath you are on", function()
+	release_all()
+	edit("spec_a")
+	breath.hold()
+	wind.focus_or_create(9, "vsplit")
+	breath.hold()
+
+	breath.release_current()
+	eq(#breath.entries(), 1, "current breath released")
+	eq(breath.last_visited(), nil, "no breath is current afterwards")
+
+	breath.release_current()
+	eq(#breath.entries(), 1, "no current breath, nothing released")
+	release_all()
+end)
+
+test("lens card lists windows while zoomed", function()
+	edit("spec_alpha")
+	wind.focus_or_create(9, "vsplit")
+	edit("spec_beta")
+
+	wind.zoom()
+	eq(wind.lualine_index(), "2", "statusline reports the lens target")
+
+	local reveal = require("wind.reveal")
+	reveal.show()
+	eq(float_count(), 1, "one lens card")
+	local card_lines
+	for _, win in ipairs(api.nvim_tabpage_list_wins(0)) do
+		if api.nvim_win_get_config(win).relative ~= "" then
+			card_lines = api.nvim_buf_get_lines(api.nvim_win_get_buf(win), 0, -1, false)
+		end
+	end
+	ok(card_lines[1]:find("spec_alpha", 1, true) ~= nil, "window 1 listed")
+	ok(card_lines[2]:find("spec_beta", 1, true) ~= nil, "window 2 listed")
+	reveal.hide()
+
+	wind.focus_or_create(1, "vsplit")
+	eq(wind.lualine_index(), "1", "statusline follows the lens")
+
+	wind.zoom()
+	eq(#api.nvim_list_tabpages(), 1, "unzoomed")
 end)
 
 test("returning to an unheld breath holds the current layout", function()

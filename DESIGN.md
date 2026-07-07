@@ -157,8 +157,12 @@ are both idiomatic and precise: hold / return / release.
 - **update**: re-pin the **last-visited** breath to the current layout
   (`commit -a` for layouts). Explicit, one keymap — drift is deliberate
   until you say otherwise.
-- **release(n)**: forget breath n. Verb + destination like the close-window
-  family (`<leader>bd3`); also `:Wind release 3` for scripting.
+- **release**: `<leader>bd` forgets the **current** breath — release, like
+  update, addresses the present. Targeted release stays on
+  `:Wind release <n>`. The **last breath can never be released**, so update
+  and the alternate toggle always have a target. (Revised from a
+  by-digit release family: releasing is about leaving the context you are
+  in, not sniping numbers from a list.)
 - **return(n) when breath n doesn't exist**: hold the current layout as the
   next breath. Declaring a destination brings it into being — the same
   idempotence as focusing a missing window — and holding is never
@@ -188,6 +192,10 @@ are both idiomatic and precise: hold / return / release.
   Structural operations — create, close, move, swap, only, resize, undo/redo,
   return — are **blocked with a quiet notice**. Small state machine, no
   broken states.
+- The lens hides the layout, so addressing must stay visible without it:
+  hesitating on the prefix shows a **lens card** (index, marker, filename
+  per hidden window), and the statusline component reports the lens
+  target's true index.
 - Toggling off restores the exact prior view. Returning to a breath or
   leaving the tabpage exits the lens first.
 
@@ -200,6 +208,10 @@ are both idiomatic and precise: hold / return / release.
   First press enters a **transient submode**: `+`/`-` repeat the nudge, any
   other key exits and executes normally. The full resize session commits to
   history as one action.
+- Grow, shrink, undo, and redo are **dot-repeatable** via the
+  operatorfunc/`g@l` idiom. The action always runs directly; the initial
+  `g@` invocation is swallowed, so correctness never depends on the repeat
+  machinery — if `g@l` cannot apply, only the repeat is lost.
 
 ## Keymaps
 
@@ -223,7 +235,7 @@ digit itself.
 | `<leader>b` + 1–9           | Return to breath n                                                      |
 | `<leader>bb`                | Update the last-visited breath (the daily verb gets the double-tap)     |
 | `<leader>bn`                | Hold a new breath                                                       |
-| `<leader>bd` + 1–9          | Release breath n                                                        |
+| `<leader>bd`                | Release the current breath (`:Wind release <n>` for others)             |
 | `` <leader>b` ``            | Alternate — toggle current ↔ previous layout                            |
 
 Commands: `:Wind reveal`, `:Wind history`, `:Wind breaths`,

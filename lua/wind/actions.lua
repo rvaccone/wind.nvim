@@ -43,7 +43,7 @@ local function record(kind, mutate)
 
 	local ok, err = pcall(mutate)
 	if not ok then
-		notify.error(("%s failed: %s"):format(kind, err))
+		notify.error(("%s failed: %s"):format(kind:sub(1, 1):upper() .. kind:sub(2), err))
 		return
 	end
 
@@ -67,7 +67,7 @@ end
 ---@return boolean
 local function layout_locked()
 	if zoom.active() then
-		notify.info("the layout is still while zoomed")
+		notify.info("The layout is still while zoomed")
 		return true
 	end
 	return false
@@ -92,7 +92,7 @@ function M.focus_or_create(n, orientation)
 		if win then
 			local index = engine.index_of(win)
 			if index and index ~= n then
-				notify.info(("created window %d"):format(index))
+				notify.info(("Created window %d"):format(index))
 			end
 		end
 	end)
@@ -166,7 +166,7 @@ function M.undo(count)
 		remaining = remaining - 1
 	end
 	if applied == 0 then
-		notify.info("nothing to undo")
+		notify.info("Nothing to undo")
 	end
 end
 
@@ -186,7 +186,7 @@ function M.redo(count)
 		remaining = remaining - 1
 	end
 	if applied == 0 then
-		notify.info("nothing to redo")
+		notify.info("Nothing to redo")
 	end
 end
 

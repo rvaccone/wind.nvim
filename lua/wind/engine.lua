@@ -109,7 +109,7 @@ function M.create(orientation)
 	local windows = M.list()
 
 	if #windows >= windows_config.max then
-		notify.info(("all %d windows are in use"):format(windows_config.max))
+		notify.info(("All %d windows are in use"):format(windows_config.max))
 		return nil
 	end
 
@@ -129,7 +129,7 @@ function M.create(orientation)
 
 	local ok, err = pcall(vim.cmd, side .. " " .. orientation)
 	if not ok then
-		notify.error("could not create window: " .. err)
+		notify.error("Could not create window: " .. err)
 		return nil
 	end
 	vim.cmd("enew")
@@ -144,11 +144,11 @@ function M.move(n)
 	local from = M.index_of()
 
 	if not from then
-		notify.info("the current window is not indexed")
+		notify.info("The current window is not indexed")
 		return
 	end
 	if not windows[n] then
-		notify.info(("window %d does not exist"):format(n))
+		notify.info(("Window %d does not exist"):format(n))
 		return
 	end
 	if from == n then
@@ -173,11 +173,11 @@ function M.swap(n)
 	local from = M.index_of()
 
 	if not from then
-		notify.info("the current window is not indexed")
+		notify.info("The current window is not indexed")
 		return
 	end
 	if not windows[n] then
-		notify.info(("window %d does not exist"):format(n))
+		notify.info(("Window %d does not exist"):format(n))
 		return
 	end
 	if from == n then
@@ -197,7 +197,7 @@ end
 function M.close(n, save)
 	local target = M.list()[n]
 	if not target then
-		notify.info(("window %d does not exist"):format(n))
+		notify.info(("Window %d does not exist"):format(n))
 		return
 	end
 
@@ -206,7 +206,7 @@ function M.close(n, save)
 			vim.cmd("silent write")
 		end)
 		if not ok then
-			notify.error(("window %d was not closed — write failed: %s"):format(n, err))
+			notify.error(("Window %d was not closed, write failed: %s"):format(n, err))
 			return
 		end
 	end
@@ -214,7 +214,7 @@ function M.close(n, save)
 	local origin = api.nvim_get_current_win()
 	local ok, err = pcall(api.nvim_win_close, target, true)
 	if not ok then
-		notify.info(("window %d cannot be closed: %s"):format(n, err))
+		notify.info(("Window %d cannot be closed: %s"):format(n, err))
 		return
 	end
 
@@ -267,7 +267,7 @@ end
 function M.only()
 	local current = api.nvim_get_current_win()
 	if not M.is_content(current) then
-		notify.info("the current window is not indexed")
+		notify.info("The current window is not indexed")
 		return
 	end
 

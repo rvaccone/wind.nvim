@@ -8,175 +8,89 @@
         ·
         <a href="#installation">Installation</a>
         ·
-        <a href="#keymaps">Keymaps</a>
+        <a href="#configuration">Configuration</a>
+        ·
+        <a href="#default-keymaps">Default Keymaps</a>
         ·
         <a href="#breaths">Breaths</a>
         ·
-        <a href="#configuration">Configuration</a>
+        <a href="#contributing">Contributing</a>
     </p>
 </div>
 
 ## About
 
-Windows with addresses. Layouts with history. You name where you want to be —
-never how to get there.
+Wind.nvim is a Neovim plugin for window management built around destinations.
+Every window gets a number based on its position on the screen, and every
+operation targets a number: focus it, move to it, swap with it, or close it.
 
-Wind gives every window a number, ordered by its place on screen (left to
-right, top to bottom by default), and every operation takes that number as its
-destination: focus it, move to it, swap with it, close it. There are no
-directional commands — no "focus left", no "move down" — because a route is
-something you compute, and a destination is something you already know.
+It works by indexing your windows from left to right and then top to bottom
+like this example:
 
     +----------------+  +----------------+  +----------------+
-    | neo-tree       |  | window 1       |  | window 2       |
-    | (invisible     |  |                |  |                |
-    |  to wind)      |  |                |  +----------------+
-    |                |  |                |  | window 3       |
+    | Window 1       |  | Window 2       |  | Window 3       |
+    | neo-tree       |  | file 1         |  | file 2         |
+    | (excluded)     |  | (indexed)      |  | (indexed)      |
     +----------------+  +----------------+  +----------------+
+                        index: 1            +----------------+
+                                            | Window 4       |
+                                            | file 3         |
+                                            | (indexed)      |
+                                            +----------------+
+                                            index: 3
 
-- `<leader>2` focuses window 2. If it doesn't exist, one window is created
-  beside the one you're in — so `<leader>9` always means "new window here".
-- `<leader>w` shows number badges on every window, then one digit moves your
-  window there while the others shift around it.
-- `<leader>wm` zooms the current window into a full-screen lens. Navigation
-  moves the lens; the layout underneath cannot be disturbed.
-- Every structural change is recorded: `<leader>wu` / `<leader>wr` undo and
-  redo layout changes. Buffers are never touched — layout undo cannot lose
-  work, by construction.
-- A layout worth returning to can be **held** as a breath and returned to by
-  number, long after you've torn the windows down.
+Focusing an index that does not exist creates a new window next to the
+current one. Since you will rarely have nine windows, `<leader>9` will
+create a new window in most cases.
 
-Wind requires Neovim 0.10+.
+Wind also records every layout change, so window operations can be undone
+and redone. Entire layouts can be held as breaths and returned to later.
+
+Wind.nvim requires Neovim 0.10+.
 
 ## Installation
 
-Using [lazy.nvim](https://github.com/folke/lazy.nvim):
+Using [lazy.nvim](https://github.com/folke/lazy.nvim) (recommended):
 
 ```lua
 {
     "rvaccone/wind.nvim",
     ---@type WindConfig
-    opts = {},
+    opts = {}
 }
 ```
 
 > [!NOTE]
-> This is wind.nvim v1, a ground-up redesign with breaking changes. To stay
-> on the previous design, pin `version = "v0.1.0"`.
-
-## Keymaps
-
-Everything is verb + destination. `<leader>1–9` are plain mappings; every
-other family is a single trigger that reveals number badges and reads one
-key.
-
-| Keys                      | Action                                              |
-| ------------------------- | --------------------------------------------------- |
-| `<leader>1–9`             | Focus window n / create beside current              |
-| `<leader>v` + `1–9`       | Focus window n / create stacked beside current      |
-| `<leader>w` + `1–9`       | Move current window to n; windows between shift     |
-| `<leader>x` + `1–9`       | Swap current window with n                          |
-| `<leader>q` + `1–9`       | Close window n                                      |
-| `<leader>z` + `1–9`       | Save and close window n                             |
-| `<leader>w` + `o`         | Only — close all other windows                      |
-| `<leader>w` + `m`         | Zoom lens toggle                                    |
-| `<leader>w` + `u` / `r`   | Layout undo / redo (count-aware: `3<leader>wu`)     |
-| `<leader>w` + `=`         | Equalize window sizes                               |
-| `<leader>w` + `+` / `-`   | Grow / shrink — keep tapping `+`/`-`, any key exits |
-| `<leader>b` + `1–9`       | Return to breath n                                  |
-| `<leader>b` + `b`         | Update the last-visited breath                      |
-| `<leader>b` + `n`         | Hold a new breath                                   |
-| `<leader>b` + `d` + `1–9` | Release breath n                                    |
-| `` <leader>b` ``          | Alternate — toggle current ↔ previous layout        |
-
-Press a trigger (`<leader>w`, `<leader>q`, …) and pause: a badge appears on
-every window after a slight hesitation (`reveal.delay_ms`, default 150ms);
-press a digit to act or anything else to cancel. Type at full speed and the
-badges never appear at all — guidance is for the moment you hesitate, never
-a cost on the moment you don't. Badges bloom in reading order and any
-keypress dismisses them immediately. `:Wind reveal` shows them on demand.
-
-Hesitating on the bare prefix works too: wind never maps `<leader>` itself
-(that would steal it from which-key and every other leader mapping), it
-only _observes_ it. In setups where a plugin like which-key consumes the
-prefix immediately, badges appear right at `delay_ms` — spatial badges and
-a which-key popup are complementary, not rivals.
-
-The overlay inherits your colorscheme: every highlight is a default link
-(`WindRevealBadge → NormalFloat`, `WindRevealBorder → FloatBorder`,
-`WindRevealCurrent → Comment`), so themes and transparent backgrounds pass
-straight through, exactly like a which-key window. Override the `WindReveal*`
-groups to restyle.
-
-Closing can never quit Neovim and never discards changes. Creation places
-windows identically regardless of your `splitright` / `splitbelow` settings.
-
-## Zoom
-
-`<leader>wm` fills the screen with the current window. While zoomed:
-
-- `<leader>1–9` switches which window fills the screen — the lens follows
-  your focus instead of breaking the layout.
-- Structural operations (create, close, move, resize, undo) are blocked
-  until you exit. The layout you built is exactly as you left it.
-
-## Layout history
-
-Every structural action — create, close, move, swap, only, resize, breath
-returns — lands in one history per tabpage. `<leader>wu` walks back,
-`<leader>wr` walks forward, both accept counts.
-
-Layout operations never write, close, or edit a buffer. Unsaved changes
-survive any amount of undoing, closing, and restoring.
-
-## Breaths
-
-A breath is a held layout — fleeting by nature, kept only because you chose
-to hold it.
-
-1. Arrange windows for the task at hand.
-2. `<leader>bn` holds it as the next breath — or just declare a destination:
-   `<leader>b2` when breath 2 doesn't exist holds the current layout, the
-   same way focusing a missing window creates one.
-3. Tear everything down, work elsewhere.
-4. `<leader>b2` rebuilds breath 2: same splits, same files, same cursor
-   positions, rebuilt around your sidebars.
-
-`<leader>bb` re-pins the last-visited breath to the current layout, and
-`` <leader>b` `` bounces between the current layout and the one you last
-jumped away from. Hesitating on `<leader>b` shows the breath card: one
-column per breath — the number on top (`•` the breath you're on, `~` means
-you've drifted from it) and each window's file beneath, in index order, so
-the column doubles as a preview of what each digit will address.
-
-Breaths record file paths, not buffer handles, so they restore cleanly even
-after buffers close. Releasing a breath shifts the numbers down, exactly
-like windows. Breath 1 is held automatically when Neovim starts.
+> This is wind.nvim v1, a redesign with breaking changes. Pin
+> `version = "v0.1.0"` to stay on the previous design.
 
 ## Configuration
 
-The defaults:
+Here is the default configuration:
 
 ```lua
 {
     windows = {
-        max = 9, -- hard ceiling; nine is the largest ambiguity-free address space
+        max = 9,
         flow = { horizontal = "right", vertical = "below" },
         excluded = {
             filetypes = { "neo-tree", "NvimTree", "netrw" },
-            bufnames = {}, -- Lua patterns
+            bufnames = {},
         },
         notify = true,
     },
+
     breaths = {
         max = 9,
         auto_hold_first = true,
     },
+
     reveal = {
         enabled = true,
-        delay_ms = 150, -- hesitation before guidance appears; 0 = instant
+        delay_ms = 150,
         animate = true,
     },
+
     keymaps = {
         prefix = "<leader>",
         window = {
@@ -204,23 +118,110 @@ The defaults:
 }
 ```
 
-Keymaps are a prefix plus single characters on purpose: navigation, the
-reveal, and every digit family derive from the same few keys and cannot
-drift apart. Any verb can be disabled with `false`; `keymaps = false`
-disables them all. Invalid configuration fails loudly at startup rather
-than guessing.
+Use `:h wind` for more information about each configuration option. However,
+here are some quick tips:
 
-`flow` controls which side new windows appear on and the direction indexing
-reads the screen — set `horizontal = "left"` for right-to-left layouts.
+- Keymaps are a prefix plus single characters. You can disable a keymap by
+  setting it to `false`, and `keymaps = false` disables all of them.
+- `flow` controls which side new windows appear on. Set
+  `horizontal = "left"` for right to left layouts.
+- Excluded windows are invisible to wind. They are never indexed, never
+  closed, and never captured in breaths. Floating windows are always
+  excluded.
+- Invalid configuration raises an error on startup instead of guessing.
 
-Excluded windows (file trees and friends) are invisible to wind: never
-indexed, never closed by `only`, never captured in breaths. Floating
-windows are always invisible.
+## Default Keymaps
+
+### Windows
+
+| Keymap                      | Description                        |
+| --------------------------- | ---------------------------------- |
+| `<leader>1` - `<leader>9`   | Focus or create window 1-9         |
+| `<leader>v` + `1-9`         | Focus or create stacked window 1-9 |
+| `<leader>w` + `1-9`         | Move the current window to 1-9     |
+| `<leader>x` + `1-9`         | Swap the current window with 1-9   |
+| `<leader>q` + `1-9`         | Close window 1-9                   |
+| `<leader>z` + `1-9`         | Save and close window 1-9          |
+| `<leader>wo`                | Close every other window           |
+| `<leader>wm`                | Toggle the zoom lens               |
+| `<leader>wu` / `<leader>wr` | Undo / redo layout changes         |
+| `<leader>w=`                | Equalize window sizes              |
+| `<leader>w+` / `<leader>w-` | Grow / shrink the current window   |
+
+### Breaths
+
+| Keymap              | Description                                    |
+| ------------------- | ---------------------------------------------- |
+| `<leader>b` + `1-9` | Return to breath 1-9                           |
+| `<leader>bb`        | Update the last visited breath                 |
+| `<leader>bn`        | Hold a new breath                              |
+| `<leader>bd`        | Release the current breath                     |
+| `` <leader>b` ``    | Toggle between the current and previous layout |
+
+All keymaps work in normal and visual modes. Undo, redo, grow, and shrink
+support dot repeat, so pressing `.` repeats the last one. Undo and redo also
+accept counts: `3<leader>wu` undoes three layout changes.
+
+> [!NOTE]
+> Closing a window through wind can never quit Neovim and never discards
+> unsaved changes. Window creation behaves the same regardless of your
+> `splitright` and `splitbelow` settings.
+
+## Reveal
+
+Press a prefix like `<leader>w` and wait: after a short delay
+(`reveal.delay_ms`), a number badge appears on every window. Press a digit
+to act, or any other key to cancel. If you type quickly, the badges never
+appear.
+
+The same works on `<leader>` itself. Wind never remaps your leader key, it
+only watches for it, so plugins like which-key keep working and both can
+appear together.
+
+The overlay uses your colorscheme. Every highlight group is a link
+(`WindRevealBadge` to `NormalFloat`, `WindRevealBorder` to `FloatBorder`,
+`WindRevealCurrent` to `Comment`), so themes and transparent backgrounds
+carry through. Override any `WindReveal*` group to restyle.
+
+## Zoom
+
+`<leader>wm` makes the current window fill the screen. While zoomed,
+`<leader>1` - `<leader>9` switch which window fills the screen, and
+hesitating on `<leader>` shows a list of the windows underneath. Layout
+changes are blocked until you exit. Toggling again restores the layout
+exactly as you left it.
+
+## Layout history
+
+Wind records every structural change (create, close, move, swap, resize,
+and breath returns) in a history per tab. `<leader>wu` undoes and
+`<leader>wr` redoes. Layout operations never write, close, or edit a
+buffer, so unsaved changes always survive.
+
+## Breaths
+
+A breath is a saved layout. Hold one, change your windows freely, and
+return to it later. Returning rebuilds the same splits, files, and cursor
+positions around your excluded windows.
+
+- `<leader>bn` holds the current layout as the next breath.
+- `<leader>b1` - `<leader>b9` return to a breath. Returning to a number
+  that is not held saves the current layout as the next breath instead.
+- `<leader>bb` updates the last visited breath to match the current layout.
+- `<leader>bd` releases the current breath. Numbers shift down, and the
+  last remaining breath cannot be released.
+- `` <leader>b` `` toggles between the current layout and the previous one.
+- Hesitating on `<leader>b` shows a card with one column per breath: the
+  number on top and each window's file below it.
+
+Breath 1 is held automatically when Neovim starts. Breaths record file
+paths instead of buffer handles, so they restore correctly even after
+buffers close.
 
 ## Statusline
 
-`wind.lualine_index()` returns the index of the window being drawn — active
-or inactive — so every window can wear its number:
+`require("wind").lualine_index()` returns the index of the window being
+drawn, for both active and inactive windows. Example for lualine:
 
 ```lua
 local function wind_index()
@@ -234,33 +235,16 @@ require("lualine").setup({
 })
 ```
 
-The same function works in a plain `'statusline'` expression via
-`v:lua` — it reads `g:statusline_winid`, so it is correct per window.
+## Commands
 
-## API
+`:Wind reveal`, `:Wind breaths`, `:Wind history`, `:Wind release <n>`, and
+`:checkhealth wind`.
 
-```lua
-local wind = require("wind")
-
-wind.index_of()          -- index of the current window (or pass a win id)
-wind.list()              -- ordered content windows
-wind.lualine_index()     -- statusline component: index of the drawn window
-wind.focus_or_create(n)  -- everything the keymaps do is callable
-wind.undo() / wind.redo()
-wind.hold() / wind.return_to(n)
-```
-
-`:Wind reveal` · `:Wind breaths` · `:Wind history` · `:Wind release <n>` ·
-`:checkhealth wind`
-
-## Design
-
-The full design contract — principles, model, and the reasoning behind every
-decision — lives in [DESIGN.md](DESIGN.md).
+See [DESIGN.md](DESIGN.md) for the design principles behind the plugin.
 
 ## Contributing
 
 ```sh
-make test       # headless test suite
-make fmt-check  # stylua
+make test       # run the test suite
+make fmt-check  # check formatting with stylua
 ```

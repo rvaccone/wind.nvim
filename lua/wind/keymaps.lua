@@ -8,6 +8,36 @@ local function map(lhs, rhs, desc)
 	vim.keymap.set({ "n", "v" }, lhs, rhs, { desc = desc, silent = true })
 end
 
+---@type { action: fun(), skip: boolean }|nil
+local dot = nil
+
+--- Operatorfunc target for dot-repeat. The initial `g@l` is swallowed
+--- because the action already ran when the key was pressed; only `.`
+--- reaches the action.
+function M.dot_repeat()
+	if not dot then
+		return
+	end
+	if dot.skip then
+		dot.skip = false
+		return
+	end
+	dot.action()
+end
+
+--- Make `.` repeat a wind action. The action itself already ran, so
+--- correctness never depends on this; if `g@l` cannot apply (empty line),
+--- only the repeat is lost.
+---@param action fun()
+local function arm_dot(action)
+	if vim.api.nvim_get_mode().mode ~= "n" then
+		return
+	end
+	dot = { action = action, skip = true }
+	vim.o.operatorfunc = "v:lua.require'wind.keymaps'.dot_repeat"
+	vim.api.nvim_feedkeys("g@l", "n", false)
+end
+
 --- Show guidance, read one key, act. Owning the pending state is the only
 --- way to guide it: keys inside a native pending mapping are invisible
 --- until they resolve, so each digit family is a trigger plus this loop.
@@ -63,16 +93,19 @@ local function digits(max, on_digit, extra)
 end
 
 --- Tap grow/shrink repeatedly; any other key leaves the submode and runs
---- normally. The whole session lands in history as a single action.
+--- normally. The whole session lands in history as a single action, and
+--- `.` afterward repeats one step in the last direction.
 ---@param first "grow"|"shrink"
 ---@param grow_char string|false
 ---@param shrink_char string|false
 local function resize_session(first, grow_char, shrink_char)
+	local last = first
 	require("wind.actions").resize_session(function()
 		local engine = require("wind.engine")
 		local step = first
 		while true do
 			engine.resize_step(step)
+			last = step
 			vim.cmd("redraw")
 			local ok, char = pcall(vim.fn.getcharstr)
 			if not ok or char == ESC then
@@ -87,6 +120,11 @@ local function resize_session(first, grow_char, shrink_char)
 				return
 			end
 		end
+	end)
+	arm_dot(function()
+		require("wind.actions").resize_session(function()
+			require("wind.engine").resize_step(last)
+		end)
 	end)
 end
 
@@ -136,11 +174,17 @@ function M.setup()
 	if window.undo then
 		verbs[window.undo] = function(count)
 			actions.undo(count)
+			arm_dot(function()
+				actions.undo(count)
+			end)
 		end
 	end
 	if window.redo then
 		verbs[window.redo] = function(count)
 			actions.redo(count)
+			arm_dot(function()
+				actions.redo(count)
+			end)
 		end
 	end
 	if window.equalize then
@@ -187,9 +231,7 @@ function M.setup()
 		breath_verbs[breath_keys.alternate] = breath.toggle_alternate
 	end
 	if breath_keys.release then
-		breath_verbs[breath_keys.release] = function()
-			guided(digits(breath_max, breath.release), reveal.show_breaths)
-		end
+		breath_verbs[breath_keys.release] = breath.release_current
 	end
 	family(
 		prefix .. breath_keys.namespace,

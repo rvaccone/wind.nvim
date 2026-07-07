@@ -80,7 +80,7 @@ acts, a known verb acts, anything else cancels.
     <leader>b  1-9     Return to breath n
     <leader>b  b       Update the last-visited breath
     <leader>b  n       Hold a new breath
-    <leader>b  d 1-9   Release breath n
+    <leader>b  d       Release the current breath
     <leader>b  `       Alternate: toggle current and previous layout
 
 All keymaps work in normal and visual mode.
@@ -128,11 +128,14 @@ persists beneath, untouched. While zoomed:
 
 - `<leader>1-9` switches which window fills the screen. The lens follows
   focus instead of breaking the layout.
+- Hesitating on the prefix shows a list of the windows beneath the lens,
+  since the layout itself is hidden.
 - Structural operations (create, close, move, swap, only, resize, undo)
   are blocked with a quiet notice.
 
 Toggling again restores the exact prior view, returning focus to the
 window the lens was showing. Returning to a breath exits the lens first.
+The statusline component reports the lens target's index while zoomed.
 
 ==============================================================================
 7. HISTORY                                                      *wind-history*
@@ -141,8 +144,9 @@ Every structural action — create, close, move, swap, only, resize, breath
 returns — is recorded in one history per tabpage (up to 100 entries).
 
 Undo and redo walk it, count-aware: `3<leader>wu` undoes three layout
-actions. Layout operations never write, close, or edit a buffer: unsaved
-changes survive any amount of undoing and restoring.
+actions. Undo, redo, grow, and shrink support dot repeat: pressing `.`
+repeats the last one. Layout operations never write, close, or edit a
+buffer: unsaved changes survive any amount of undoing and restoring.
 
 ==============================================================================
 8. BREATHS                                                      *wind-breaths*
@@ -166,7 +170,10 @@ update~
     deliberate until you say otherwise.
 
 release~
-    Forget breath n. Numbers shift down, exactly like windows.
+    Forget the current breath (the one last visited). Numbers shift down,
+    exactly like windows. The last remaining breath can never be released,
+    so update and the alternate toggle always have a target. Release by
+    number with `:Wind release {n}`.
 
 alternate~
     One register holding the layout you last jumped away from. Jump-class
@@ -174,8 +181,9 @@ alternate~
 
 Breaths record file paths, cursor positions, and fractional geometry —
 never buffer handles — so they restore cleanly after buffers close and
-terminal resizes. Breath 1 is held automatically when the session enters
-(see `breaths.auto_hold_first`).
+terminal resizes. Window-local options and manual folds are not captured.
+Breath 1 is held automatically when the session enters (see
+`breaths.auto_hold_first`).
 
 ==============================================================================
 9. CONFIGURATION                                          *wind-configuration*

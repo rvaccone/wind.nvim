@@ -41,7 +41,7 @@ local function enter()
 	local engine = require("wind.engine")
 	local current = api.nvim_get_current_win()
 	if not engine.is_content(current) then
-		notify.info("the current window is not indexed")
+		notify.info("The current window is not indexed")
 		return
 	end
 
@@ -56,7 +56,7 @@ local function enter()
 	local ok, err = pcall(vim.cmd, "tab split")
 	if not ok then
 		vim.o.showtabline = entering.showtabline
-		notify.error("could not zoom: " .. err)
+		notify.error("Could not zoom: " .. err)
 		return
 	end
 
@@ -112,6 +112,40 @@ function M.exit()
 	end
 end
 
+--- The frozen window list, for guidance while the layout is hidden.
+---@return { index: integer, name: string, current: boolean }[]
+function M.lens_entries()
+	if not state then
+		return {}
+	end
+	local entries = {}
+	for index, win in ipairs(state.windows) do
+		if api.nvim_win_is_valid(win) then
+			local name = fn.fnamemodify(api.nvim_buf_get_name(api.nvim_win_get_buf(win)), ":t")
+			entries[#entries + 1] = {
+				index = index,
+				name = name ~= "" and name or "[empty]",
+				current = win == state.return_win,
+			}
+		end
+	end
+	return entries
+end
+
+--- Index of the window the lens is showing.
+---@return integer|nil
+function M.lens_index()
+	if not state then
+		return nil
+	end
+	for index, win in ipairs(state.windows) do
+		if win == state.return_win then
+			return index
+		end
+	end
+	return nil
+end
+
 --- Point the lens at window n without leaving the zoom.
 ---@param n integer
 function M.lens_focus(n)
@@ -121,7 +155,7 @@ function M.lens_focus(n)
 
 	local target = state.windows[n]
 	if not target or not api.nvim_win_is_valid(target) then
-		notify.info(("window %d does not exist"):format(n))
+		notify.info(("Window %d does not exist"):format(n))
 		return
 	end
 

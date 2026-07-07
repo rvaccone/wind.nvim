@@ -8,7 +8,7 @@ local subcommands = {
 		local breath = require("wind.breath")
 		local entries = breath.entries()
 		if #entries == 0 then
-			vim.notify("no breaths held", vim.log.levels.INFO, { title = "wind" })
+			vim.notify("No breaths held", vim.log.levels.INFO, { title = "wind" })
 			return
 		end
 		require("wind.reveal").show_breaths()
@@ -31,7 +31,7 @@ local subcommands = {
 	release = function(n)
 		local index = tonumber(n)
 		if not index then
-			require("wind.notify").warn("usage: :Wind release <n>")
+			require("wind.notify").warn("Usage: :Wind release <n>")
 			return
 		end
 		require("wind.breath").release(index)
@@ -52,7 +52,7 @@ function M.setup(opts)
 		if subcommand then
 			subcommand(command.fargs[2])
 		else
-			require("wind.notify").warn(("unknown subcommand: %s"):format(name))
+			require("wind.notify").warn(("Unknown subcommand: %s"):format(name))
 		end
 	end, {
 		nargs = "*",
@@ -124,8 +124,14 @@ M.index_of = function(win)
 end
 
 --- Statusline/lualine component: the index of the window being drawn.
---- Works for active and inactive windows alike.
+--- Works for active and inactive windows alike, and reports the lens
+--- target's true index while zoomed.
 M.lualine_index = function()
+	local zoom = require("wind.zoom")
+	if zoom.active() then
+		local index = zoom.lens_index()
+		return index and tostring(index) or ""
+	end
 	local win = tonumber(vim.g.statusline_winid) or vim.api.nvim_get_current_win()
 	local index = require("wind.engine").index_of(win)
 	return index and tostring(index) or ""

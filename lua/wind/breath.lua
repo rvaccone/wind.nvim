@@ -45,7 +45,7 @@ end
 function M.hold(opts)
 	local max = config.get().breaths.max
 	if #held >= max then
-		notify.info(("all %d breaths are held — release one first"):format(max))
+		notify.info(("All %d breaths are held, release one first"):format(max))
 		return
 	end
 	local captured = snapshot.capture()
@@ -55,14 +55,14 @@ function M.hold(opts)
 	held[#held + 1] = { snapshot = captured }
 	last_visited = #held
 	if not (opts and opts.silent) then
-		notify.info(("held breath %d"):format(#held))
+		notify.info(("Held breath %d"):format(#held))
 	end
 end
 
 function M.update()
 	local entry = last_visited and held[last_visited]
 	if not entry then
-		notify.info("no breath to update — hold one first")
+		notify.info("No breath to update, hold one first")
 		return
 	end
 	local captured = snapshot.capture()
@@ -70,13 +70,13 @@ function M.update()
 		return
 	end
 	entry.snapshot = captured
-	notify.info(("breath %d updated"):format(last_visited))
+	notify.info(("Breath %d updated"):format(last_visited))
 end
 
 --- Toggle between the current layout and the one last jumped away from.
 function M.toggle_alternate()
 	if not alternate then
-		notify.info("no alternate layout yet")
+		notify.info("No alternate layout yet")
 		return
 	end
 	require("wind.zoom").exit()
@@ -112,11 +112,17 @@ function M.return_to(n)
 	last_visited = n
 end
 
---- Release breath n. Numbers shift down, exactly like windows.
+--- Release breath n. Numbers shift down, exactly like windows. The last
+--- breath can never be released, so update and the alternate toggle always
+--- have a target.
 ---@param n integer
 function M.release(n)
 	if not held[n] then
-		notify.info(("breath %d is not held"):format(n))
+		notify.info(("Breath %d is not held"):format(n))
+		return
+	end
+	if #held == 1 then
+		notify.info("The last breath cannot be released")
 		return
 	end
 	table.remove(held, n)
@@ -127,7 +133,24 @@ function M.release(n)
 			last_visited = last_visited - 1
 		end
 	end
-	notify.info(("released breath %d"):format(n))
+	notify.info(("Released breath %d"):format(n))
+end
+
+--- Release the breath you are on. Targeted release stays on
+--- `:Wind release <n>`.
+function M.release_current()
+	if not last_visited then
+		notify.info("No breath is current")
+		return
+	end
+	M.release(last_visited)
+end
+
+--- Test hook: forget everything.
+function M.reset()
+	held = {}
+	last_visited = nil
+	alternate = nil
 end
 
 --- Hold breath 1 from the initial layout so update and the alternate

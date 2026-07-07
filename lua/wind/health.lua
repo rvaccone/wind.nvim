@@ -27,6 +27,12 @@ function M.check()
 		health.ok(("keymap prefix: %s"):format(keymaps.prefix))
 	end
 
+	if pcall(require, "which-key") then
+		health.ok("which-key detected: bare-prefix badges appear right at reveal.delay_ms")
+	else
+		health.info("no which-key detected: bare-prefix badges appear when the pending mapping resolves ('timeoutlen')")
+	end
+
 	local windows = require("wind.engine").list()
 	health.info(("%d content window(s) currently indexed"):format(#windows))
 	health.info(("%d breath(s) held"):format(#require("wind.breath").entries()))
