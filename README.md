@@ -18,6 +18,11 @@
     </p>
 </div>
 
+<!-- Demo -->
+<div align="center">
+    <img src="demo/demo.gif" alt="wind.nvim demo" />
+</div>
+
 ## About
 
 Wind.nvim is a Neovim plugin for window management built around destinations.
