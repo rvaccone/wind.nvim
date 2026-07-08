@@ -5,7 +5,7 @@
 Output demo/demo.gif
 Output demo/demo.mp4
 
-Set FontFamily "JetBrainsMono Nerd Font"
+Set FontFamily "Maple Mono NF"
 Set FontSize 20
 Set Width 1400
 Set Height 800
