@@ -51,6 +51,11 @@ create a new window in most cases.
 Wind also records every layout change, so window operations can be undone
 and redone. Entire layouts can be held as breaths and returned to later.
 
+If you are coming from Emacs, the layout undo plays the same role as
+winner mode, and jumping by index replaces windmove style directional
+movement. History is kept per tab page, so undo and redo never reach
+across tabs.
+
 Wind.nvim requires Neovim 0.10+.
 
 ## Installation
